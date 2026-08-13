@@ -1,6 +1,8 @@
 import { ToolCard } from "@/components/ToolCard";
 import { toolsForCategory, type ToolCategory } from "@/lib/tools";
 
+const siteUrl = "https://webtaskkit.com";
+
 const copy: Record<ToolCategory, { lead: string; body: string }> = {
   Generators: {
     lead: "Create useful codes and sounds directly in your browser.",
@@ -18,10 +20,37 @@ const copy: Record<ToolCategory, { lead: string; body: string }> = {
 
 export function CategoryPage({ category }: { category: ToolCategory }) {
   const categoryTools = toolsForCategory(category);
+  const categoryUrl = `${siteUrl}/${category.toLowerCase()}`;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "ItemList",
+        name: `${category} tools by WebTaskKit`,
+        url: categoryUrl,
+        numberOfItems: categoryTools.length,
+        itemListElement: categoryTools.map((tool, index) => ({
+          "@type": "ListItem",
+          position: index + 1,
+          name: tool.name,
+          url: `${siteUrl}${tool.href}`,
+        })),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+          { "@type": "ListItem", position: 2, name: category, item: categoryUrl },
+        ],
+      },
+    ],
+  };
+
   return (
     <main>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <section className="page-hero section-wrap">
-        <div className="breadcrumbs"><a href="/">Home</a><span>/</span><span>{category}</span></div>
+        <div className="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span><span>{category}</span></div>
         <p className="eyebrow">WebTaskKit collection</p>
         <h1>{category}</h1>
         <p className="page-lead">{copy[category].lead}</p>

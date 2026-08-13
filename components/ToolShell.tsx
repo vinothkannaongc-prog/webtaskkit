@@ -14,6 +14,17 @@ type ToolShellProps = {
   privacyNote?: string;
 };
 
+const siteUrl = "https://webtaskkit.com";
+
+const relatedToolSlugs: Record<string, string[]> = {
+  "qr-code": ["barcode", "tone", "svg"],
+  barcode: ["qr-code", "tone", "txt-to-pdf"],
+  "txt-to-pdf": ["text", "svg", "barcode"],
+  svg: ["text", "qr-code", "barcode"],
+  text: ["svg", "txt-to-pdf", "qr-code"],
+  tone: ["qr-code", "barcode", "text"],
+};
+
 export function ToolShell({
   tool,
   intro,
@@ -23,7 +34,11 @@ export function ToolShell({
   faqs,
   privacyNote = "This tool runs locally in your browser. Your input is not uploaded to WebTaskKit.",
 }: ToolShellProps) {
-  const related = tools.filter((item) => item.href !== tool.href).slice(0, 3);
+  const related = (relatedToolSlugs[tool.slug] ?? [])
+    .map((slug) => tools.find((item) => item.slug === slug))
+    .filter((item): item is ToolDefinition => Boolean(item));
+  const toolUrl = `${siteUrl}${tool.href}`;
+  const categoryUrl = `${siteUrl}/${tool.category.toLowerCase()}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -33,6 +48,9 @@ export function ToolShell({
         applicationCategory: "UtilitiesApplication",
         operatingSystem: "Any modern web browser",
         description: intro,
+        url: toolUrl,
+        isAccessibleForFree: true,
+        publisher: { "@type": "Organization", name: "WebTaskKit", url: siteUrl },
         offers: { "@type": "Offer", price: 0, priceCurrency: "USD" },
       },
       {
@@ -42,6 +60,14 @@ export function ToolShell({
           name: faq.question,
           acceptedAnswer: { "@type": "Answer", text: faq.answer },
         })),
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+          { "@type": "ListItem", position: 2, name: tool.category, item: categoryUrl },
+          { "@type": "ListItem", position: 3, name: tool.name, item: toolUrl },
+        ],
       },
     ],
   };

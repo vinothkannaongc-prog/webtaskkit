@@ -26,6 +26,8 @@ test("server-renders the WebTaskKit home page", async () => {
   assert.match(html, /WebTaskKit/);
   assert.match(html, /A practical toolkit/);
   assert.match(html, /QR Code Generator/);
+  assert.match(html, /https:\/\/webtaskkit\.com\/webtaskkit-og\.png/);
+  assert.doesNotMatch(html, /webtaskkit\.test\/webtaskkit-og\.png/);
   assert.doesNotMatch(html, /Building your site|react-loading-skeleton|codex-preview/);
 });
 
@@ -38,6 +40,26 @@ test("server-renders a tool page with product content", async () => {
   assert.match(html, /QR code/);
   assert.match(html, /runs locally in your browser/i);
   assert.match(html, /FAQPage/);
+  assert.match(html, /BreadcrumbList/);
+  assert.match(html, /isAccessibleForFree/);
+  assert.match(html, /https:\/\/webtaskkit\.com\/generators\/qr-code/);
+});
+
+test("server-renders category hubs with index and breadcrumb data", async () => {
+  const response = await render("/generators/");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /ItemList/);
+  assert.match(html, /BreadcrumbList/);
+  assert.match(html, /https:\/\/webtaskkit\.com\/generators\/tone/);
+});
+
+test("sitemap always uses the production origin", async () => {
+  const response = await render("/sitemap.xml");
+  assert.equal(response.status, 200);
+  const xml = await response.text();
+  assert.match(xml, /https:\/\/webtaskkit\.com\/generators\/qr-code/);
+  assert.doesNotMatch(xml, /webtaskkit\.test/);
 });
 
 test("server-renders the privacy page", async () => {

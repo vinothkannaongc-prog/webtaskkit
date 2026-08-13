@@ -20,7 +20,9 @@ export default function Home() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "WebTaskKit",
+    url: "https://webtaskkit.com",
     description: "A focused toolkit for everyday web tasks, with no signup and private browser processing.",
+    publisher: { "@type": "Organization", name: "WebTaskKit", url: "https://webtaskkit.com" },
   };
 
   return (
