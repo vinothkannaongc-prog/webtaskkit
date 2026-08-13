@@ -14,9 +14,9 @@ export function SiteHeader() {
           <span className="wordmark__name"><span>WebTask</span><b>Kit</b></span>
         </Link>
         <nav className="main-nav" aria-label="Primary navigation">
-          <Link href="/generators/">Generators</Link>
-          <Link href="/converters/">Converters</Link>
-          <Link href="/editors/">Editors</Link>
+          <Link href="/generators">Generators</Link>
+          <Link href="/converters">Converters</Link>
+          <Link href="/editors">Editors</Link>
           <Link className="nav-all" href="/#tools">All tools</Link>
         </nav>
       </div>

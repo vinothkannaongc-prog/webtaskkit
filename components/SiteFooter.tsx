@@ -10,8 +10,8 @@ export function SiteFooter() {
         </div>
         <nav aria-label="Footer navigation">
           <Link href="/#tools">All tools</Link>
-          <Link href="/privacy/">Privacy</Link>
-          <Link href="/about/">About</Link>
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/about">About</Link>
         </nav>
         <p className="site-footer__note">Built for the browser. Designed for the task.</p>
       </div>
