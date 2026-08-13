@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+
+/usr/bin/certbot renew \
+  --cert-name webtaskkit.com \
+  --quiet \
+  --config-dir /home/ubuntu/offshorefocus_site/ssl/certbot/conf \
+  --work-dir /var/lib/letsencrypt \
+  --logs-dir /var/log/letsencrypt \
+  --deploy-hook "/usr/bin/docker exec offshorefocus_nginx nginx -s reload"
+

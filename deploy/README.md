@@ -11,6 +11,8 @@ public ingress and proxies `webtaskkit.com` to port 3000 inside that network.
 - Docker image: `webtaskkit:<git-sha>` and `webtaskkit:latest`
 - Nginx include: `/home/ubuntu/offshorefocus_site/docker/nginx/webtaskkit.conf`
 - Certificate: `/home/ubuntu/offshorefocus_site/ssl/certbot/conf/live/webtaskkit.com`
+- Renewal wrapper: `/usr/local/sbin/renew-webtaskkit-cert`
+- Renewal schedule: `/etc/cron.d/webtaskkit-certbot`
 
 ## Safe update sequence
 
@@ -25,4 +27,9 @@ public ingress and proxies `webtaskkit.com` to port 3000 inside that network.
 The application has no database, uploaded files, runtime secrets, or writable
 state. Rollback is therefore a container replacement using the prior tagged
 image.
+
+The VPS's generic Certbot systemd timer is masked and its package cron entry
+intentionally skips systemd hosts. WebTaskKit therefore uses its own twice-daily
+renewal entry and reloads the shared Nginx container only after a successful
+renewal.
 

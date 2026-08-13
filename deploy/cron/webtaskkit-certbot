@@ -1,0 +1,6 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# Check twice daily. Certbot renews only when the certificate is near expiry.
+29 3,15 * * * root /usr/local/sbin/renew-webtaskkit-cert >> /var/log/letsencrypt/webtaskkit-renew.log 2>&1
+
