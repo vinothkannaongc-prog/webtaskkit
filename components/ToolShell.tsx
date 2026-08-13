@@ -3,6 +3,9 @@ import { ToolCard } from "./ToolCard";
 import { tools, type ToolDefinition } from "@/lib/tools";
 
 type FAQ = { question: string; answer: string };
+type PracticalExample = { title: string; text: string };
+type DecisionPoint = { title: string; text: string };
+type WorkflowLink = { href: string; label: string; text: string };
 
 type ToolShellProps = {
   tool: ToolDefinition;
@@ -11,6 +14,10 @@ type ToolShellProps = {
   steps: string[];
   features: { title: string; text: string }[];
   faqs: FAQ[];
+  practicalExamples: PracticalExample[];
+  decisionGuide: DecisionPoint[];
+  limitations: string[];
+  workflowLinks: WorkflowLink[];
   privacyNote?: string;
 };
 
@@ -32,6 +39,10 @@ export function ToolShell({
   steps,
   features,
   faqs,
+  practicalExamples,
+  decisionGuide,
+  limitations,
+  workflowLinks,
   privacyNote = "This tool runs locally in your browser. Your input is not uploaded to WebTaskKit.",
 }: ToolShellProps) {
   const related = (relatedToolSlugs[tool.slug] ?? [])
@@ -113,6 +124,58 @@ export function ToolShell({
               <p>{feature.text}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="practical-section section-wrap" aria-labelledby="practical-title">
+        <div className="section-heading">
+          <p className="eyebrow">Put it to work</p>
+          <h2 id="practical-title">Practical ways to use {tool.shortName}</h2>
+        </div>
+        <div className="practical-example-grid">
+          {practicalExamples.map((example) => (
+            <article key={example.title} className="practical-example-card">
+              <h3>{example.title}</h3>
+              <p>{example.text}</p>
+            </article>
+          ))}
+        </div>
+
+        <div className="decision-grid">
+          <article className="decision-panel">
+            <p className="eyebrow">Choose deliberately</p>
+            <h2>Make the right output</h2>
+            <div className="decision-list">
+              {decisionGuide.map((item) => (
+                <div key={item.title}>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </div>
+              ))}
+            </div>
+          </article>
+          <aside className="limits-panel" aria-labelledby="limits-title">
+            <p className="eyebrow">Know the boundaries</p>
+            <h2 id="limits-title">Before you rely on the result</h2>
+            <ul>
+              {limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}
+            </ul>
+          </aside>
+        </div>
+
+        <div className="workflow-panel">
+          <div>
+            <p className="eyebrow">Continue the workflow</p>
+            <h2>Useful next steps</h2>
+          </div>
+          <div className="workflow-link-list">
+            {workflowLinks.map((link) => (
+              <a key={link.href} href={link.href}>
+                <strong>{link.label}<span aria-hidden="true"> &rarr;</span></strong>
+                <span>{link.text}</span>
+              </a>
+            ))}
+          </div>
         </div>
       </section>
 

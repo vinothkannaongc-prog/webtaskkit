@@ -3,23 +3,86 @@ import { toolsForCategory, type ToolCategory } from "@/lib/tools";
 
 const siteUrl = "https://webtaskkit.com";
 
-const copy: Record<ToolCategory, { lead: string; body: string }> = {
+type CategoryCopy = {
+  lead: string;
+  body: string;
+  choiceTitle: string;
+  choices: { href: string; title: string; text: string }[];
+  workflow: { title: string; text: string }[];
+  boundaryTitle: string;
+  boundary: string;
+  related: { href: string; label: string; text: string }[];
+};
+
+const copy: Record<ToolCategory, CategoryCopy> = {
   Generators: {
-    lead: "Create useful codes and sounds directly in your browser.",
-    body: "Every generator opens instantly, keeps your inputs on this device, and gives you a practical result to download or use right away.",
+    lead: "Create scannable codes and test tones directly in your browser.",
+    body: "Start with the system that must receive the result: a phone camera, a barcode scanner or an audio playback chain. Generate locally, export only what you need and test in the real setting before relying on it.",
+    choiceTitle: "Choose a generator by what must read the result",
+    choices: [
+      { href: "/generators/qr-code", title: "QR code for links and readable text", text: "Use a QR code when a phone camera should open a URL, contact action or short text payload." },
+      { href: "/generators/barcode", title: "Barcode for inventory and retail systems", text: "Choose Code 128, UPC, EAN or ITF only when the receiving scanner and database expect that symbology." },
+      { href: "/generators/tone", title: "Tone for controlled audio checks", text: "Generate a frequency and waveform for pitch comparisons or informal playback troubleshooting at a low volume." },
+    ],
+    workflow: [
+      { title: "Define the receiver", text: "Confirm the scanner, phone, software or speaker that will consume the output and any format it requires." },
+      { title: "Generate a conservative first version", text: "Use strong contrast for codes, the correct identifier standard for barcodes and low volume for audio." },
+      { title: "Test the final context", text: "Scan the printed proof or listen through the actual playback chain. A browser preview cannot reproduce every production condition." },
+    ],
+    boundaryTitle: "Local creation does not remove real-world risk",
+    boundary: "Code contents and tone settings are processed on this device, but the finished output still needs judgment. Do not encode secrets in a public graphic, do not invent retail identifiers, and do not treat browser audio as calibrated measurement equipment.",
+    related: [
+      { href: "/editors", label: "Prepare and inspect source material", text: "Clean text before encoding it or review a downloaded SVG before placing it in artwork." },
+      { href: "/converters/txt-to-pdf", label: "Make a printable test sheet", text: "Turn plain-text instructions or observation notes into a simple PDF." },
+    ],
   },
   Converters: {
-    lead: "Turn everyday files and content into formats that are easier to share.",
-    body: "WebTaskKit converters are designed around small, clear workflows. Your content is processed locally whenever the browser can do the work.",
+    lead: "Turn plain text into a fixed-layout document that is easier to print and share.",
+    body: "The TXT to PDF converter handles a focused job: simple pagination for pasted text or a TXT, Markdown or log file. It runs locally and works best when you want readability rather than rich document design.",
+    choiceTitle: "Know when TXT to PDF is the right fit",
+    choices: [
+      { href: "/converters/txt-to-pdf", title: "Convert notes, logs and instructions", text: "Choose page size, margins, font size and an optional title, then review the downloaded PDF." },
+      { href: "/editors/text", title: "Clean the text before conversion", text: "Normalize spaces, sort a list or confirm word and line counts before fixing the content into pages." },
+      { href: "/generators/qr-code", title: "Share a hosted document by QR", text: "After placing the PDF at an appropriate public link, encode that final URL for a handout or sign." },
+    ],
+    workflow: [
+      { title: "Finalize the source", text: "Remove unwanted spacing and confirm that plain text is sufficient; Markdown formatting is not rendered." },
+      { title: "Choose for the reader", text: "Select A4 or US Letter and keep margins and type large enough for the intended screen or printer." },
+      { title: "Inspect before sending", text: "Open the result and check page breaks and characters, especially when the source contains symbols, emoji or non-Latin scripts." },
+    ],
+    boundaryTitle: "Simple conversion, not a document-design system",
+    boundary: "Conversion stays in the browser, but the lightweight PDF font and plain-text layout have deliberate limits. Use a full document editor when you need tables, images, styled headings, collaboration or broad complex-script support.",
+    related: [
+      { href: "/editors", label: "Edit before you convert", text: "Prepare plain text or work separately with vector artwork using the focused editors." },
+      { href: "/generators", label: "Create a code for the next step", text: "Generate a QR code for a public document link or a barcode for a compatible identifier system." },
+    ],
   },
   Editors: {
-    lead: "Make focused edits without installing a full desktop application.",
-    body: "Open or paste your content, make the change, and download a clean result. No account and no server upload are required.",
+    lead: "Make focused changes to plain text or SVG source without installing a desktop application.",
+    body: "Choose the editor by the material, not just the file extension. The text editor is for portable words and lists; the SVG editor validates vector markup and gives you a cleaned visual preview.",
+    choiceTitle: "Choose the editor that understands the source",
+    choices: [
+      { href: "/editors/text", title: "Text editor for words, lists and logs", text: "Use live counts, whole-document case changes, whitespace cleanup and line sorting, then download UTF-8 TXT." },
+      { href: "/editors/svg", title: "SVG editor for vector markup", text: "Change shapes, colors, dimensions or accessible labels while checking XML and a sandboxed visual preview." },
+      { href: "/converters/txt-to-pdf", title: "Converter for a fixed reading copy", text: "Once plain text is final, paginate it into a simple A4 or Letter PDF without uploading it." },
+    ],
+    workflow: [
+      { title: "Keep an original", text: "Transformations and SVG cleanup can change the whole document. Preserve the source when exact wording, order or markup matters." },
+      { title: "Make one intentional change", text: "Apply a single cleanup or source edit, then review the text or preview before continuing." },
+      { title: "Download before leaving", text: "Neither editor autosaves to an account. Export the finished file before refreshing or closing the tab." },
+    ],
+    boundaryTitle: "Focused source editors have deliberate limits",
+    boundary: "These tools process content locally, but they are not collaborative word processors, visual illustration suites or complete security scanners. Proofread transformed text, review sanitized SVG output and apply the security rules of the system where the file will be used.",
+    related: [
+      { href: "/generators", label: "Generate an asset to inspect", text: "Create a QR code or barcode as SVG, or prepare text that will become a code payload." },
+      { href: "/converters/txt-to-pdf", label: "Publish clean text as PDF", text: "Turn the final plain-text version into a paginated local download." },
+    ],
   },
 };
 
 export function CategoryPage({ category }: { category: ToolCategory }) {
   const categoryTools = toolsForCategory(category);
+  const categoryCopy = copy[category];
   const categoryUrl = `${siteUrl}/${category.toLowerCase()}`;
   const jsonLd = {
     "@context": "https://schema.org",
@@ -53,12 +116,57 @@ export function CategoryPage({ category }: { category: ToolCategory }) {
         <div className="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span aria-hidden="true">/</span><span>{category}</span></div>
         <p className="eyebrow">WebTaskKit collection</p>
         <h1>{category}</h1>
-        <p className="page-lead">{copy[category].lead}</p>
-        <p className="page-copy">{copy[category].body}</p>
+        <p className="page-lead">{categoryCopy.lead}</p>
+        <p className="page-copy">{categoryCopy.body}</p>
       </section>
+
       <section className="section-wrap category-tool-section" aria-labelledby="category-tools-title">
         <div className="section-heading"><p className="eyebrow">Ready when you are</p><h2 id="category-tools-title">Choose a tool</h2></div>
         <div className="tool-grid">{categoryTools.map((tool) => <ToolCard key={tool.href} tool={tool} />)}</div>
+      </section>
+
+      <section className="category-guide-section section-wrap" aria-labelledby="category-guide-title">
+        <div className="section-heading">
+          <p className="eyebrow">Choose with confidence</p>
+          <h2 id="category-guide-title">{categoryCopy.choiceTitle}</h2>
+        </div>
+        <div className="category-choice-grid">
+          {categoryCopy.choices.map((choice) => (
+            <a key={choice.href} href={choice.href} className="category-choice-card">
+              <h3>{choice.title}<span aria-hidden="true"> &rarr;</span></h3>
+              <p>{choice.text}</p>
+            </a>
+          ))}
+        </div>
+
+        <div className="category-practice-grid">
+          <article className="category-workflow-panel">
+            <p className="eyebrow">A reliable workflow</p>
+            <h2>From source to checked result</h2>
+            <ol>
+              {categoryCopy.workflow.map((step, index) => (
+                <li key={step.title}>
+                  <span>{index + 1}</span>
+                  <div><h3>{step.title}</h3><p>{step.text}</p></div>
+                </li>
+              ))}
+            </ol>
+          </article>
+          <aside className="category-boundary-panel">
+            <p className="eyebrow">Privacy and limits</p>
+            <h2>{categoryCopy.boundaryTitle}</h2>
+            <p>{categoryCopy.boundary}</p>
+          </aside>
+        </div>
+
+        <nav className="category-related-links" aria-label={`Related ${category.toLowerCase()} workflows`}>
+          {categoryCopy.related.map((link) => (
+            <a key={link.href} href={link.href}>
+              <strong>{link.label}<span aria-hidden="true"> &rarr;</span></strong>
+              <span>{link.text}</span>
+            </a>
+          ))}
+        </nav>
       </section>
     </main>
   );

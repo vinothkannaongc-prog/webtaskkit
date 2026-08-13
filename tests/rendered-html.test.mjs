@@ -54,6 +54,45 @@ test("server-renders category hubs with index and breadcrumb data", async () => 
   assert.match(html, /https:\/\/webtaskkit\.com\/generators\/tone/);
 });
 
+test("tool pages explain real workflows, boundaries and contextual next steps", async () => {
+  const expectations = [
+    ["/generators/qr-code/", "Printed menus and instructions", "A static QR code cannot be redirected", "/editors/text"],
+    ["/generators/barcode/", "Internal stock labels", "does not issue, license or register", "/editors/svg"],
+    ["/generators/tone/", "Compare a musical pitch", "does not measure acoustic output", "/converters/txt-to-pdf"],
+    ["/converters/txt-to-pdf/", "Meeting notes and handoffs", "Markdown symbols are treated as ordinary text", "/editors/text"],
+    ["/editors/svg/", "Repair scaling behavior", "not a substitute for your application", "/generators/barcode"],
+    ["/editors/text/", "Clean copied notes", "Nothing is autosaved", "/converters/txt-to-pdf"],
+  ];
+
+  for (const [path, example, limitation, linkedPath] of expectations) {
+    const response = await render(path);
+    assert.equal(response.status, 200, path);
+    const html = await response.text();
+    assert.match(html, new RegExp(example), `${path} should include a practical example`);
+    assert.match(html, new RegExp(limitation, "i"), `${path} should state a meaningful limitation`);
+    assert.match(html, new RegExp(`href=["']${linkedPath}["']`), `${path} should include a contextual internal link`);
+    assert.match(html, /Useful next steps/);
+  }
+});
+
+test("category hubs provide selection guidance and cross-category workflows", async () => {
+  const expectations = [
+    ["/generators/", "Choose a generator by what must read the result", "Define the receiver", "/editors"],
+    ["/converters/", "Know when TXT to PDF is the right fit", "Inspect before sending", "/editors/text"],
+    ["/editors/", "Choose the editor that understands the source", "Keep an original", "/converters/txt-to-pdf"],
+  ];
+
+  for (const [path, guidance, workflow, linkedPath] of expectations) {
+    const response = await render(path);
+    assert.equal(response.status, 200, path);
+    const html = await response.text();
+    assert.match(html, new RegExp(guidance));
+    assert.match(html, new RegExp(workflow));
+    assert.match(html, /Privacy and limits/);
+    assert.match(html, new RegExp(`href=["']${linkedPath}["']`));
+  }
+});
+
 test("sitemap always uses the production origin", async () => {
   const response = await render("/sitemap.xml");
   assert.equal(response.status, 200);
