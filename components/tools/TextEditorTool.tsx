@@ -25,7 +25,7 @@ function safeTextFilename(filename: string) {
     .replace(/[^a-z0-9_-]+/gi, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 64);
-  return `${stem || "quiettools-text"}.txt`;
+  return `${stem || "webtaskkit-text"}.txt`;
 }
 
 function countWords(value: string) {
@@ -40,7 +40,7 @@ function countWords(value: string) {
 export function TextEditorTool() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
-  const [filename, setFilename] = useState("quiettools-text.txt");
+  const [filename, setFilename] = useState("webtaskkit-text.txt");
   const [status, setStatus] = useState("Ready. Nothing is saved or uploaded automatically.");
 
   const counts = useMemo(() => {
@@ -78,7 +78,7 @@ export function TextEditorTool() {
       setFilename(file.name);
       setStatus(`${file.name} opened locally.`);
     } catch {
-      setStatus("QuietTools could not read that text file.");
+      setStatus("WebTaskKit could not read that text file.");
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
@@ -192,7 +192,7 @@ export function TextEditorTool() {
           <button
             className="button button--ghost"
             type="button"
-            onClick={() => { setText(""); setFilename("quiettools-text.txt"); setStatus("Editor cleared."); }}
+            onClick={() => { setText(""); setFilename("webtaskkit-text.txt"); setStatus("Editor cleared."); }}
             disabled={!text}
           >
             Clear editor

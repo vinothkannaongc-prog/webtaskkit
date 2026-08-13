@@ -17,7 +17,7 @@ function saveDownload(href: string, filename: string) {
 
 export function QRCodeTool() {
   const contentId = useId();
-  const [content, setContent] = useState("https://quiettools.example");
+  const [content, setContent] = useState("https://webtaskkit.com");
   const [foreground, setForeground] = useState("#102026");
   const [background, setBackground] = useState("#ffffff");
   const [errorCorrection, setErrorCorrection] = useState<ErrorCorrectionLevel>("M");
@@ -76,7 +76,7 @@ export function QRCodeTool() {
         errorCorrectionLevel: errorCorrection,
         color: { dark: foreground, light: background },
       });
-      saveDownload(dataUrl, "quiettools-qr-code.png");
+      saveDownload(dataUrl, "webtaskkit-qr-code.png");
       setStatus(`Downloaded a ${size} × ${size} PNG.`);
     } catch {
       setStatus("PNG export failed. Please try again.");
@@ -98,7 +98,7 @@ export function QRCodeTool() {
         color: { dark: foreground, light: background },
       });
       const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
-      saveDownload(url, "quiettools-qr-code.svg");
+      saveDownload(url, "webtaskkit-qr-code.svg");
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
       setStatus("Downloaded a scalable SVG.");
     } catch {

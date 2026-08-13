@@ -14,7 +14,7 @@ function safePdfName(title: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 64);
-  return `${cleaned || "quiettools-document"}.pdf`;
+  return `${cleaned || "webtaskkit-document"}.pdf`;
 }
 
 export function TxtToPdfTool() {
@@ -61,7 +61,7 @@ export function TxtToPdfTool() {
       if (!title) setTitle(file.name.replace(/\.[^.]+$/, ""));
       setStatus(`${file.name} is ready to convert.`);
     } catch {
-      setStatus("QuietTools could not read that file. Try another plain-text file.");
+      setStatus("WebTaskKit could not read that file. Try another plain-text file.");
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
@@ -123,8 +123,8 @@ export function TxtToPdfTool() {
       });
 
       pdf.setProperties({
-        title: title.trim() || "QuietTools document",
-        creator: "QuietTools TXT to PDF Converter",
+        title: title.trim() || "WebTaskKit document",
+        creator: "WebTaskKit TXT to PDF Converter",
       });
       pdf.save(safePdfName(title));
       setStatus("PDF created and downloaded.");

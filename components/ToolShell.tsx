@@ -22,7 +22,7 @@ export function ToolShell({
   steps,
   features,
   faqs,
-  privacyNote = "This tool runs locally in your browser. Your input is not uploaded to QuietTools.",
+  privacyNote = "This tool runs locally in your browser. Your input is not uploaded to WebTaskKit.",
 }: ToolShellProps) {
   const related = tools.filter((item) => item.href !== tool.href).slice(0, 3);
   const jsonLd = {
@@ -30,7 +30,7 @@ export function ToolShell({
     "@graph": [
       {
         "@type": "WebApplication",
-        name: `${tool.name} by QuietTools`,
+        name: `${tool.name} by WebTaskKit`,
         applicationCategory: "UtilitiesApplication",
         operatingSystem: "Any modern web browser",
         description: intro,

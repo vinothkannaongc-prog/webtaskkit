@@ -142,7 +142,7 @@ export function BarcodeTool() {
     clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     const source = new XMLSerializer().serializeToString(clone);
     const url = URL.createObjectURL(new Blob([source], { type: "image/svg+xml;charset=utf-8" }));
-    saveDownload(url, `quiettools-${format.toLowerCase()}-barcode.svg`);
+    saveDownload(url, `webtaskkit-${format.toLowerCase()}-barcode.svg`);
     window.setTimeout(() => URL.revokeObjectURL(url), 0);
     setStatus("Downloaded a scalable SVG.");
   }
@@ -164,7 +164,7 @@ export function BarcodeTool() {
         font: "ui-monospace, SFMono-Regular, Menlo, monospace",
         fontSize: 18,
       });
-      saveDownload(canvas.toDataURL("image/png"), `quiettools-${format.toLowerCase()}-barcode.png`);
+      saveDownload(canvas.toDataURL("image/png"), `webtaskkit-${format.toLowerCase()}-barcode.png`);
       setStatus("Downloaded a PNG.");
     } catch {
       setStatus("PNG export failed. Check the value and try again.");

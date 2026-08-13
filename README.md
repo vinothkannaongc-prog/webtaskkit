@@ -1,6 +1,6 @@
-# QuietTools
+# WebTaskKit
 
-QuietTools is a fast, private collection of browser utilities. The launch site includes QR and barcode generators, TXT-to-PDF conversion, SVG and plain-text editors, and a Web Audio tone generator.
+WebTaskKit is a fast, private collection of browser utilities. The launch site includes QR and barcode generators, TXT-to-PDF conversion, SVG and plain-text editors, and a Web Audio tone generator.
 
 All tool inputs are processed on the visitor's device. The site does not require an account or a database.
 

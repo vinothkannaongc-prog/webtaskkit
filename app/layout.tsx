@@ -12,26 +12,26 @@ export async function generateMetadata(): Promise<Metadata> {
   const forwardedProtocol = requestHeaders.get("x-forwarded-proto");
   const protocol = forwardedProtocol ?? (host?.includes("localhost") ? "http" : "https");
   const origin = host ? `${protocol}://${host}` : undefined;
-  const socialImage = origin ? `${origin}/quiettools-og.png` : "/quiettools-og.png";
+  const socialImage = origin ? `${origin}/webtaskkit-og.png` : "/webtaskkit-og.png";
 
   return {
     metadataBase: origin ? new URL(origin) : undefined,
-    title: { default: "QuietTools - Fast, Private Online Tools", template: "%s | QuietTools" },
+    title: { default: "WebTaskKit - Fast, Private Online Tools", template: "%s | WebTaskKit" },
     description,
-    applicationName: "QuietTools",
+    applicationName: "WebTaskKit",
     keywords: ["online tools", "browser tools", "QR code generator", "barcode generator", "TXT to PDF"],
-    authors: [{ name: "QuietTools" }],
-    creator: "QuietTools",
+    authors: [{ name: "WebTaskKit" }],
+    creator: "WebTaskKit",
     robots: { index: true, follow: true },
     icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
     openGraph: {
       type: "website",
-      siteName: "QuietTools",
-      title: "QuietTools - Useful tools. Nothing in the way.",
+      siteName: "WebTaskKit",
+      title: "WebTaskKit - Everyday web tasks, handled.",
       description,
-      images: [{ url: socialImage, width: 1729, height: 910, alt: "QuietTools - Useful tools. Nothing in the way." }],
+      images: [{ url: socialImage, width: 1729, height: 910, alt: "WebTaskKit - Everyday web tasks, handled." }],
     },
-    twitter: { card: "summary_large_image", title: "QuietTools - Useful tools. Nothing in the way.", description, images: [socialImage] },
+    twitter: { card: "summary_large_image", title: "WebTaskKit - Everyday web tasks, handled.", description, images: [socialImage] },
   };
 }
 

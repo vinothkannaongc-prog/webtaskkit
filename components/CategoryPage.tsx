@@ -9,7 +9,7 @@ const copy: Record<ToolCategory, { lead: string; body: string }> = {
   },
   Converters: {
     lead: "Turn everyday files and content into formats that are easier to share.",
-    body: "QuietTools converters are designed around small, clear workflows. Your content is processed locally whenever the browser can do the work.",
+    body: "WebTaskKit converters are designed around small, clear workflows. Your content is processed locally whenever the browser can do the work.",
   },
   Editors: {
     lead: "Make focused edits without installing a full desktop application.",
@@ -23,7 +23,7 @@ export function CategoryPage({ category }: { category: ToolCategory }) {
     <main>
       <section className="page-hero section-wrap">
         <div className="breadcrumbs"><Link href="/">Home</Link><span>/</span><span>{category}</span></div>
-        <p className="eyebrow">QuietTools collection</p>
+        <p className="eyebrow">WebTaskKit collection</p>
         <h1>{category}</h1>
         <p className="page-lead">{copy[category].lead}</p>
         <p className="page-copy">{copy[category].body}</p>

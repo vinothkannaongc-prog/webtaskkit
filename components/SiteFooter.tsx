@@ -5,8 +5,8 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div className="site-footer__inner">
         <div>
-          <div className="footer-brand">QuietTools</div>
-          <p>Useful tools. Nothing in the way.</p>
+          <div className="footer-brand">WebTaskKit</div>
+          <p>Everyday web tasks, handled.</p>
         </div>
         <nav aria-label="Footer navigation">
           <Link href="/#tools">All tools</Link>

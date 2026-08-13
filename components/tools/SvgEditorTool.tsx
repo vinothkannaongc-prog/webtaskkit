@@ -4,12 +4,12 @@ import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 const MAX_FILE_BYTES = 750_000;
 const STARTER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
-  <title id="title">QuietTools sample</title>
+  <title id="title">WebTaskKit sample</title>
   <desc id="desc">A teal circle and a calm typographic label.</desc>
   <rect width="640" height="360" rx="32" fill="#f6f8fa"/>
   <circle cx="168" cy="180" r="76" fill="#0f766e"/>
   <path d="M140 180h56M168 152v56" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
-  <text x="278" y="194" fill="#102026" font-family="system-ui, sans-serif" font-size="42" font-weight="700">QuietTools</text>
+  <text x="264" y="194" fill="#102026" font-family="system-ui, sans-serif" font-size="42" font-weight="700">WebTaskKit</text>
 </svg>`;
 
 type SanitizedSvg = {
@@ -83,13 +83,13 @@ function safeSvgFilename(filename: string) {
     .replace(/[^a-z0-9_-]+/gi, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 64);
-  return `${stem || "quiettools-clean"}.svg`;
+  return `${stem || "webtaskkit-clean"}.svg`;
 }
 
 export function SvgEditorTool() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [source, setSource] = useState(STARTER_SVG);
-  const [filename, setFilename] = useState("quiettools-sample.svg");
+  const [filename, setFilename] = useState("webtaskkit-sample.svg");
   const [status, setStatus] = useState("Safe preview ready.");
   const canUseDomParser = useSyncExternalStore(
     subscribeToBrowserState,
@@ -135,7 +135,7 @@ export function SvgEditorTool() {
       setFilename(file.name);
       setStatus(`${file.name} loaded and checked locally.`);
     } catch {
-      setStatus("QuietTools could not read that SVG file.");
+      setStatus("WebTaskKit could not read that SVG file.");
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
@@ -190,7 +190,7 @@ export function SvgEditorTool() {
         />
         <div className="input-meta help-text">
           <span>{byteCount.toLocaleString()} / {MAX_FILE_BYTES.toLocaleString()} bytes</span>
-          <button className="text-action" type="button" onClick={() => { setSource(STARTER_SVG); setFilename("quiettools-sample.svg"); setStatus("Sample restored."); }}>
+          <button className="text-action" type="button" onClick={() => { setSource(STARTER_SVG); setFilename("webtaskkit-sample.svg"); setStatus("Sample restored."); }}>
             Restore sample
           </button>
         </div>

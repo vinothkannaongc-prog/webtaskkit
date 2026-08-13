@@ -53,6 +53,8 @@ h3 { font-size: 1.18rem; }
 .site-header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid rgba(216, 225, 229, 0.86); background: rgba(246, 248, 250, 0.88); backdrop-filter: blur(16px); }
 .site-header__inner { width: min(1200px, calc(100% - 40px)); min-height: 72px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
 .wordmark { display: inline-flex; align-items: center; gap: 11px; font-size: 1.04rem; font-weight: 800; letter-spacing: -0.025em; }
+.wordmark__name { display: inline-flex; align-items: baseline; }
+.wordmark__name b { color: var(--teal); font: inherit; }
 .wordmark__mark { width: 27px; height: 27px; padding: 5px; border: 1px solid #76b9b2; border-radius: 7px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; background: var(--teal-soft); }
 .wordmark__mark span { border-radius: 2px; background: var(--teal); }
 .wordmark__mark span:nth-child(2), .wordmark__mark span:nth-child(3) { opacity: .38; }
@@ -243,9 +245,9 @@ kbd { min-width: 21px; padding: 2px 5px; border: 1px solid var(--line); border-b
 .tone-visual span:nth-child(3n) { height: 116px; }
 .tone-visual span:nth-child(4n) { height: 52px; }
 .tone-visual span:nth-child(7n) { height: 94px; }
-.tone-preview--playing .tone-visual span { opacity: .9; animation: quiet-wave 850ms ease-in-out infinite alternate; animation-delay: calc(var(--wave-index) * -18ms); }
+.tone-preview--playing .tone-visual span { opacity: .9; animation: task-wave 850ms ease-in-out infinite alternate; animation-delay: calc(var(--wave-index) * -18ms); }
 .tone-meta { width: 100%; padding-top: 16px; display: flex; justify-content: space-between; border-top: 1px solid #314349; color: #9db0b6; font: 600 .7rem/1 ui-monospace, SFMono-Regular, Consolas, monospace; text-transform: uppercase; }
-@keyframes quiet-wave { from { transform: scaleY(.28); } to { transform: scaleY(1); } }
+@keyframes task-wave { from { transform: scaleY(.28); } to { transform: scaleY(1); } }
 .code-input, .code-editor, .svg-source { min-height: 370px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .82rem; tab-size: 2; }
 .text-editor { min-height: 430px; }
 .stats-row, .text-stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin: 12px 0; }
