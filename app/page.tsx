@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ToolFinder } from "@/components/ToolFinder";
 import { categoryLinks } from "@/lib/tools";
 
@@ -35,8 +34,8 @@ export default function Home() {
             <h1>A practical toolkit for<br /><em>everyday web tasks.</em></h1>
             <p className="hero-lead">Create codes, convert files, edit content and generate precise audio tones—fast, free and privately in your browser.</p>
             <div className="hero-actions">
-              <Link className="button button--primary" href="#tools">Explore the tools <span aria-hidden="true">↓</span></Link>
-              <Link className="button button--ghost" href="/privacy">How privacy works</Link>
+              <a className="button button--primary" href="#tools">Explore the tools <span aria-hidden="true">↓</span></a>
+              <a className="button button--ghost" href="/privacy">How privacy works</a>
             </div>
             <div className="trust-row" aria-label="Product benefits">
               <span>Runs in your browser</span><span>No signup</span><span>Free to use</span>
@@ -46,10 +45,10 @@ export default function Home() {
             <div className="workbench-bar"><span /><span /><span /><b>webtaskkit / workspace</b></div>
             <div className="workbench-body">
               <div className="workbench-label">Choose a task</div>
-              <Link href="/generators/qr-code" className="workbench-item is-active"><span>QR</span><b>Create a QR code</b><i>→</i></Link>
-              <Link href="/converters/txt-to-pdf" className="workbench-item"><span>PDF</span><b>Convert text to PDF</b><i>→</i></Link>
-              <Link href="/editors/svg" className="workbench-item"><span>&lt;/&gt;</span><b>Edit an SVG</b><i>→</i></Link>
-              <Link href="/generators/tone" className="workbench-item"><span>Hz</span><b>Play an audio tone</b><i>→</i></Link>
+              <a href="/generators/qr-code" className="workbench-item is-active"><span>QR</span><b>Create a QR code</b><i>→</i></a>
+              <a href="/converters/txt-to-pdf" className="workbench-item"><span>PDF</span><b>Convert text to PDF</b><i>→</i></a>
+              <a href="/editors/svg" className="workbench-item"><span>&lt;/&gt;</span><b>Edit an SVG</b><i>→</i></a>
+              <a href="/generators/tone" className="workbench-item"><span>Hz</span><b>Play an audio tone</b><i>→</i></a>
               <div className="workbench-status"><span>●</span> Ready. Your work stays local.</div>
             </div>
           </div>
@@ -62,9 +61,9 @@ export default function Home() {
         <div className="section-heading"><p className="eyebrow">One focused collection</p><h2>Tools for the task at hand</h2></div>
         <div className="category-grid">
           {categoryLinks.map((category, index) => (
-            <Link href={category.href} className="category-card" key={category.name}>
+            <a href={category.href} className="category-card" key={category.name}>
               <span>0{index + 1}</span><h3>{category.name}</h3><p>{category.description}</p><b aria-hidden="true">↗</b>
-            </Link>
+            </a>
           ))}
         </div>
       </section>

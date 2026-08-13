@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { ToolCard } from "./ToolCard";
 import { tools, type ToolDefinition } from "@/lib/tools";
@@ -52,8 +51,8 @@ export function ToolShell({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <section className="tool-hero section-wrap">
         <div className="breadcrumbs" aria-label="Breadcrumb">
-          <Link href="/">Home</Link><span aria-hidden="true">/</span>
-          <Link href={`/${tool.category.toLowerCase()}/`}>{tool.category}</Link><span aria-hidden="true">/</span>
+          <a href="/">Home</a><span aria-hidden="true">/</span>
+          <a href={`/${tool.category.toLowerCase()}`}>{tool.category}</a><span aria-hidden="true">/</span>
           <span>{tool.shortName}</span>
         </div>
         <div className="tool-title-row">

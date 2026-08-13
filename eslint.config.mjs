@@ -23,6 +23,11 @@ const eslintConfig = defineConfig([
   jsxA11y.flatConfigs.recommended,
   next.configs["core-web-vitals"],
   {
+    rules: {
+      // Vinext beta currently emits broken client-router exports in production.
+      // Native anchors keep navigation reliable until the upstream router is fixed.
+      "@next/next/no-html-link-for-pages": "off",
+    },
     languageOptions: {
       globals: {
         ...globals.browser,

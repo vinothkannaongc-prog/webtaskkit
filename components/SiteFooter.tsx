@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export function SiteFooter() {
   return (
     <footer className="site-footer">
@@ -9,9 +7,9 @@ export function SiteFooter() {
           <p>Everyday web tasks, handled.</p>
         </div>
         <nav aria-label="Footer navigation">
-          <Link href="/#tools">All tools</Link>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/about">About</Link>
+          <a href="/#tools">All tools</a>
+          <a href="/privacy">Privacy</a>
+          <a href="/about">About</a>
         </nav>
         <p className="site-footer__note">Built for the browser. Designed for the task.</p>
       </div>

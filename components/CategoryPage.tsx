@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { ToolCard } from "@/components/ToolCard";
 import { toolsForCategory, type ToolCategory } from "@/lib/tools";
 
@@ -22,7 +21,7 @@ export function CategoryPage({ category }: { category: ToolCategory }) {
   return (
     <main>
       <section className="page-hero section-wrap">
-        <div className="breadcrumbs"><Link href="/">Home</Link><span>/</span><span>{category}</span></div>
+        <div className="breadcrumbs"><a href="/">Home</a><span>/</span><span>{category}</span></div>
         <p className="eyebrow">WebTaskKit collection</p>
         <h1>{category}</h1>
         <p className="page-lead">{copy[category].lead}</p>
