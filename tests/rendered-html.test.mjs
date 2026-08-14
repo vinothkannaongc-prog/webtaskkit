@@ -27,6 +27,8 @@ test("server-renders the WebTaskKit home page", async () => {
   assert.match(html, /A practical toolkit/);
   assert.match(html, /QR Code Generator/);
   assert.match(html, /https:\/\/webtaskkit\.com\/webtaskkit-og\.png/);
+  assert.match(html, /https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js/);
+  assert.match(html, /data-cf-beacon="[^"]*a23077944fb94f7dacc69f53f208f2e9/);
   assert.doesNotMatch(html, /webtaskkit\.test\/webtaskkit-og\.png/);
   assert.doesNotMatch(html, /Building your site|react-loading-skeleton|codex-preview/);
 });
@@ -107,4 +109,6 @@ test("server-renders the privacy page", async () => {
   const html = await response.text();
   assert.match(html, /Privacy at WebTaskKit/);
   assert.match(html, /Tool inputs/);
+  assert.match(html, /Cloudflare Web Analytics/);
+  assert.match(html, /does not use cookies/i);
 });
