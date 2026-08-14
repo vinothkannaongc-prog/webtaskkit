@@ -37,8 +37,12 @@ formats omit IP addresses, arbitrary URL paths, query strings, referrers,
 cookies, user agents and tool contents. The application validates the exact
 event and page allowlists before Nginx records a canonical value.
 
-Before enabling the include, create the directory and empty `access.jsonl` and
-`events.jsonl` files with root ownership and mode `0640`. Install
+Before enabling the include, confirm the shared Nginx worker UID and GID with
+`docker exec offshorefocus_nginx id nginx` (currently `101:101`). Give the
+`event-logs` parent and WebTaskKit subdirectory ownership `root:101` with mode
+`0750`, and give empty `access.jsonl` and `events.jsonl` files ownership
+`101:101` with mode `0640`. The worker group needs directory traversal and the
+worker owner needs to reopen rotated files. Install
 `deploy/logrotate/webtaskkit` as `/etc/logrotate.d/webtaskkit` with root
 ownership and mode `0644`. Validate with `logrotate --debug`, then run
 `docker exec offshorefocus_nginx nginx -t` before reloading Nginx. Logs rotate
