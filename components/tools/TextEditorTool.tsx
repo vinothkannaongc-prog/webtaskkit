@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { useToolEvents } from "@/lib/useToolEvents";
 
 const MAX_FILE_BYTES = 500_000;
 
@@ -39,6 +40,12 @@ function countWords(value: string) {
 
 export function TextEditorTool() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const {
+    start: trackStart,
+    complete: trackComplete,
+    output: trackOutput,
+    validationError: trackValidationError,
+  } = useToolEvents("/editors/text");
   const [text, setText] = useState("");
   const [filename, setFilename] = useState("webtaskkit-text.txt");
   const [status, setStatus] = useState("Ready. Nothing is saved or uploaded automatically.");
@@ -52,39 +59,48 @@ export function TextEditorTool() {
   }, [text]);
 
   function updateText(value: string) {
+    trackStart();
     if (new Blob([value]).size > MAX_FILE_BYTES) {
       setStatus("That text is over the 500 KB editor limit.");
-      return;
+      trackValidationError();
+      return false;
     }
     setText(value);
     setStatus("Editing locally. Changes are not saved automatically.");
+    return true;
   }
 
   async function loadFile(file: File | undefined) {
     if (!file) return;
+    trackStart();
     if (file.size > MAX_FILE_BYTES) {
       setStatus("That file is over the 500 KB editor limit.");
+      trackValidationError();
       return;
     }
     const extension = file.name.split(".").pop()?.toLowerCase();
     if (!extension || !["txt", "md", "log"].includes(extension)) {
       setStatus("Choose a .txt, .md, or .log file.");
+      trackValidationError();
       return;
     }
 
     try {
       const contents = await file.text();
-      updateText(contents);
+      if (!updateText(contents)) return;
       setFilename(file.name);
       setStatus(`${file.name} opened locally.`);
+      trackComplete();
     } catch {
       setStatus("WebTaskKit could not read that text file.");
+      trackValidationError();
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
   function downloadText() {
+    trackStart();
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
@@ -93,28 +109,38 @@ export function TextEditorTool() {
     anchor.click();
     URL.revokeObjectURL(url);
     setStatus("Text file downloaded.");
+    trackComplete();
+    trackOutput();
   }
 
   async function copyText() {
+    trackStart();
     if (!text) {
       setStatus("Add some text before copying.");
+      trackValidationError();
       return;
     }
     try {
       await navigator.clipboard.writeText(text);
       setStatus("Text copied to the clipboard.");
+      trackComplete();
+      trackOutput();
     } catch {
       setStatus("Clipboard access was blocked. Select the text and copy it manually.");
+      trackValidationError();
     }
   }
 
   function transform(label: string, transformText: (value: string) => string) {
+    trackStart();
     if (!text) {
       setStatus("Add some text before using a transform.");
+      trackValidationError();
       return;
     }
     setText(transformText(text));
     setStatus(`${label} applied. Changes are not saved automatically.`);
+    trackComplete();
   }
 
   function handleEditorKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -192,7 +218,7 @@ export function TextEditorTool() {
           <button
             className="button button--ghost"
             type="button"
-            onClick={() => { setText(""); setFilename("webtaskkit-text.txt"); setStatus("Editor cleared."); }}
+            onClick={() => { trackStart(); setText(""); setFilename("webtaskkit-text.txt"); setStatus("Editor cleared."); }}
             disabled={!text}
           >
             Clear editor

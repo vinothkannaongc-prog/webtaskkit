@@ -1,19 +1,25 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const workerUrl = new URL("../dist/server/index.js", import.meta.url);
 
-async function render(path = "/") {
+async function dispatch(path = "/", init = {}) {
   const importedUrl = new URL(workerUrl);
-  importedUrl.searchParams.set("test", `${process.pid}-${Date.now()}-${path}`);
+  importedUrl.searchParams.set("test", `${process.pid}-${Date.now()}-${init.method ?? "GET"}-${path}`);
   const { default: worker } = await import(importedUrl.href);
   const environment = { ASSETS: { fetch: async () => new Response("Not found", { status: 404 }) } };
   const context = { waitUntil() {}, passThroughOnException() {} };
-  let request = new Request(`http://webtaskkit.test${path}`, { headers: { accept: "text/html" } });
-  let response = await worker.fetch(request, environment, context);
+  const headers = new Headers(init.headers);
+  if (!headers.has("accept")) headers.set("accept", "text/html");
+  const request = new Request(`http://webtaskkit.test${path}`, { ...init, headers });
+  return worker.fetch(request, environment, context);
+}
+
+async function render(path = "/") {
+  let response = await dispatch(path);
   if (response.status >= 300 && response.status < 400 && response.headers.get("location")) {
-    request = new Request(new URL(response.headers.get("location"), request.url), { headers: { accept: "text/html" } });
-    response = await worker.fetch(request, environment, context);
+    response = await dispatch(new URL(response.headers.get("location"), `http://webtaskkit.test${path}`).pathname);
   }
   return response;
 }
@@ -111,4 +117,124 @@ test("server-renders the privacy page", async () => {
   assert.match(html, /Tool inputs/);
   assert.match(html, /Cloudflare Web Analytics/);
   assert.match(html, /does not use cookies/i);
+  assert.match(html, /Tool usage events/);
+  assert.match(html, /only an allowlisted action name and that tool(?:&apos;|')s canonical page path/i);
+  assert.match(html, /does not retain IP addresses, cookies, browser or device identifiers/i);
+  assert.match(html, /retained for up to 14 days, then deleted/i);
+});
+
+const eventHeaders = {
+  "content-type": "application/json; charset=utf-8",
+  origin: "http://webtaskkit.test",
+  "sec-fetch-site": "same-origin",
+};
+
+async function postEvent(payload, headers = eventHeaders) {
+  return dispatch("/__events", {
+    method: "POST",
+    headers,
+    body: typeof payload === "string" ? payload : JSON.stringify(payload),
+  });
+}
+
+test("event endpoint accepts only allowlisted names and canonical tool paths", async () => {
+  const eventNames = ["tool_started", "tool_completed", "output_action", "validation_error"];
+  const paths = [
+    "/generators/qr-code",
+    "/generators/barcode",
+    "/generators/tone",
+    "/converters/txt-to-pdf",
+    "/editors/svg",
+    "/editors/text",
+  ];
+
+  for (const event of eventNames) {
+    const response = await postEvent({ event, path: paths[0] });
+    assert.equal(response.status, 204, event);
+    assert.equal(response.headers.get("x-event-name"), event);
+    assert.equal(response.headers.get("x-event-path"), paths[0]);
+    assert.equal(await response.text(), "");
+  }
+
+  for (const path of paths) {
+    const response = await postEvent({ event: "tool_started", path });
+    assert.equal(response.status, 204, path);
+    assert.equal(response.headers.get("x-event-path"), path);
+  }
+});
+
+test("event endpoint rejects malformed, expanded, oversized, or cross-site records", async () => {
+  const invalidPayloads = [
+    { event: "unknown", path: "/generators/qr-code" },
+    { event: "tool_started", path: "/generators/qr-code?value=secret" },
+    { event: "tool_started", path: "/generators/qr-code", value: "secret" },
+    { event: "tool_started" },
+    ["tool_started", "/generators/qr-code"],
+    "{not-json",
+  ];
+
+  for (const payload of invalidPayloads) {
+    const response = await postEvent(payload);
+    assert.equal(response.status, 400);
+    assert.equal(response.headers.get("x-event-name"), null);
+    assert.equal(response.headers.get("x-event-path"), null);
+  }
+
+  const wrongType = await postEvent(
+    { event: "tool_started", path: "/generators/qr-code" },
+    { ...eventHeaders, "content-type": "text/plain" },
+  );
+  assert.equal(wrongType.status, 415);
+
+  const crossSite = await postEvent(
+    { event: "tool_started", path: "/generators/qr-code" },
+    { ...eventHeaders, origin: "https://example.com", "sec-fetch-site": "cross-site" },
+  );
+  assert.equal(crossSite.status, 403);
+
+  const oversized = await postEvent(JSON.stringify({
+    event: "tool_started",
+    path: "/generators/qr-code",
+    padding: "x".repeat(300),
+  }));
+  assert.equal(oversized.status, 413);
+});
+
+test("event endpoint does not collect through GET or OPTIONS", async () => {
+  const getResponse = await dispatch("/__events", { method: "GET" });
+  assert.equal(getResponse.status, 405);
+  assert.equal(getResponse.headers.get("x-event-name"), null);
+
+  const optionsResponse = await dispatch("/__events", { method: "OPTIONS" });
+  assert.equal(optionsResponse.status, 204);
+  assert.equal(optionsResponse.headers.get("x-event-name"), null);
+  assert.equal(optionsResponse.headers.get("access-control-allow-origin"), null);
+});
+
+test("all six tools use the minimal best-effort first-party event client", async () => {
+  const eventClient = await readFile(new URL("../lib/useToolEvents.ts", import.meta.url), "utf8");
+  assert.match(eventClient, /fetch\("\/__events"/);
+  assert.match(eventClient, /credentials:\s*"omit"/);
+  assert.match(eventClient, /referrerPolicy:\s*"no-referrer"/);
+  assert.match(eventClient, /mode:\s*"same-origin"/);
+  assert.match(eventClient, /keepalive:\s*true/);
+  assert.doesNotMatch(eventClient, /localStorage|sessionStorage|document\.cookie|navigator\.userAgent/);
+
+  const integrations = [
+    ["../components/tools/QRCodeTool.tsx", "/generators/qr-code"],
+    ["../components/tools/BarcodeTool.tsx", "/generators/barcode"],
+    ["../components/tools/ToneGeneratorTool.tsx", "/generators/tone"],
+    ["../components/tools/TxtToPdfTool.tsx", "/converters/txt-to-pdf"],
+    ["../components/tools/SvgEditorTool.tsx", "/editors/svg"],
+    ["../components/tools/TextEditorTool.tsx", "/editors/text"],
+  ];
+
+  for (const [file, path] of integrations) {
+    const source = await readFile(new URL(file, import.meta.url), "utf8");
+    assert.match(source, new RegExp(`useToolEvents\\("${path}"\\)`), file);
+    assert.match(source, /trackStart\(\)/, file);
+    assert.match(source, /trackComplete\(\)/, file);
+    assert.match(source, /trackOutput\(\)/, file);
+    assert.match(source, /trackValidationError\(\)/, file);
+  }
 });

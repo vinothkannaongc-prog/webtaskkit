@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useToolEvents } from "@/lib/useToolEvents";
 
 type BarcodeFormat = "CODE128" | "EAN13" | "UPC" | "EAN8" | "ITF14";
 
@@ -76,6 +77,12 @@ function saveDownload(href: string, filename: string) {
 
 export function BarcodeTool() {
   const valueId = useId();
+  const {
+    start: trackStart,
+    complete: trackComplete,
+    output: trackOutput,
+    validationError: trackValidationError,
+  } = useToolEvents("/generators/barcode");
   const svgRef = useRef<SVGSVGElement>(null);
   const renderRequest = useRef(0);
   const [format, setFormat] = useState<BarcodeFormat>("CODE128");
@@ -95,6 +102,7 @@ export function BarcodeTool() {
     if (!element || validation.error) {
       element?.replaceChildren();
       setStatus(validation.error || "Enter a value to generate a barcode.");
+      if (validation.error) trackValidationError();
       return;
     }
 
@@ -115,16 +123,19 @@ export function BarcodeTool() {
           fontSize: 18,
         });
         setStatus(validation.note || "Barcode ready.");
+        trackComplete();
       } catch {
         svgRef.current?.replaceChildren();
         setStatus("This value cannot be encoded in the selected format.");
+        trackValidationError();
       }
     };
 
     void render();
-  }, [background, barHeight, barWidth, foreground, format, showText, validation.error, validation.note, validation.value]);
+  }, [background, barHeight, barWidth, foreground, format, showText, trackComplete, trackValidationError, validation.error, validation.note, validation.value]);
 
   function changeFormat(nextFormat: BarcodeFormat) {
+    trackStart();
     setFormat(nextFormat);
     const examples: Record<BarcodeFormat, string> = {
       CODE128: "ORDER-2026-001",
@@ -137,7 +148,11 @@ export function BarcodeTool() {
   }
 
   function downloadSvg() {
-    if (validation.error || !svgRef.current?.childNodes.length) return;
+    trackStart();
+    if (validation.error || !svgRef.current?.childNodes.length) {
+      trackValidationError();
+      return;
+    }
     const clone = svgRef.current.cloneNode(true) as SVGSVGElement;
     clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     const source = new XMLSerializer().serializeToString(clone);
@@ -145,10 +160,16 @@ export function BarcodeTool() {
     saveDownload(url, `webtaskkit-${format.toLowerCase()}-barcode.svg`);
     window.setTimeout(() => URL.revokeObjectURL(url), 0);
     setStatus("Downloaded a scalable SVG.");
+    trackComplete();
+    trackOutput();
   }
 
   async function downloadPng() {
-    if (validation.error) return;
+    trackStart();
+    if (validation.error) {
+      trackValidationError();
+      return;
+    }
     try {
       setStatus("Creating PNG…");
       const { default: JsBarcode } = await import("jsbarcode");
@@ -166,8 +187,11 @@ export function BarcodeTool() {
       });
       saveDownload(canvas.toDataURL("image/png"), `webtaskkit-${format.toLowerCase()}-barcode.png`);
       setStatus("Downloaded a PNG.");
+      trackComplete();
+      trackOutput();
     } catch {
       setStatus("PNG export failed. Check the value and try again.");
+      trackValidationError();
     }
   }
 
@@ -192,7 +216,7 @@ export function BarcodeTool() {
             type="text"
             inputMode={format === "CODE128" ? "text" : "numeric"}
             value={rawValue}
-            onChange={(event) => setRawValue(event.target.value)}
+            onChange={(event) => { trackStart(); setRawValue(event.target.value); }}
             placeholder={currentFormat.placeholder}
             spellCheck={false}
             aria-invalid={Boolean(validation.error)}
@@ -206,7 +230,7 @@ export function BarcodeTool() {
         <div className="control-grid control-grid--two">
           <label className="field-group">
             <span className="field-label">Bar width</span>
-            <select className="tool-select" value={barWidth} onChange={(event) => setBarWidth(Number(event.target.value))}>
+            <select className="tool-select" value={barWidth} onChange={(event) => { trackStart(); setBarWidth(Number(event.target.value)); }}>
               <option value={1}>Fine</option>
               <option value={2}>Standard</option>
               <option value={3}>Wide</option>
@@ -214,7 +238,7 @@ export function BarcodeTool() {
           </label>
           <label className="field-group">
             <span className="field-label">Bar height</span>
-            <select className="tool-select" value={barHeight} onChange={(event) => setBarHeight(Number(event.target.value))}>
+            <select className="tool-select" value={barHeight} onChange={(event) => { trackStart(); setBarHeight(Number(event.target.value)); }}>
               <option value={64}>Compact</option>
               <option value={96}>Standard</option>
               <option value={128}>Tall</option>
@@ -228,14 +252,14 @@ export function BarcodeTool() {
             <label className="color-control">
               <span>Bars</span>
               <span className="color-input-wrap">
-                <input type="color" value={foreground} onChange={(event) => setForeground(event.target.value)} aria-label="Barcode bar color" />
+                <input type="color" value={foreground} onChange={(event) => { trackStart(); setForeground(event.target.value); }} aria-label="Barcode bar color" />
                 <span>{foreground.toUpperCase()}</span>
               </span>
             </label>
             <label className="color-control">
               <span>Background</span>
               <span className="color-input-wrap">
-                <input type="color" value={background} onChange={(event) => setBackground(event.target.value)} aria-label="Barcode background color" />
+                <input type="color" value={background} onChange={(event) => { trackStart(); setBackground(event.target.value); }} aria-label="Barcode background color" />
                 <span>{background.toUpperCase()}</span>
               </span>
             </label>
@@ -243,7 +267,7 @@ export function BarcodeTool() {
         </fieldset>
 
         <label className="toggle-control">
-          <input type="checkbox" checked={showText} onChange={(event) => setShowText(event.target.checked)} />
+          <input type="checkbox" checked={showText} onChange={(event) => { trackStart(); setShowText(event.target.checked); }} />
           <span>Show human-readable value</span>
         </label>
 

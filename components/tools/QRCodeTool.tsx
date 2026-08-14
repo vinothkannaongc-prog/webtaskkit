@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { useToolEvents } from "@/lib/useToolEvents";
 
 type ErrorCorrectionLevel = "L" | "M" | "Q" | "H";
 
@@ -17,6 +18,12 @@ function saveDownload(href: string, filename: string) {
 
 export function QRCodeTool() {
   const contentId = useId();
+  const {
+    start: trackStart,
+    complete: trackComplete,
+    output: trackOutput,
+    validationError: trackValidationError,
+  } = useToolEvents("/generators/qr-code");
   const [content, setContent] = useState("https://webtaskkit.com");
   const [foreground, setForeground] = useState("#102026");
   const [background, setBackground] = useState("#ffffff");
@@ -35,6 +42,7 @@ export function QRCodeTool() {
       if (!cleanContent) {
         setPreview("");
         setStatus("Enter a link or text to create a QR code.");
+        trackValidationError();
         return;
       }
 
@@ -51,21 +59,27 @@ export function QRCodeTool() {
         if (request === latestRequest.current) {
           setPreview(image);
           setStatus("QR code ready.");
+          trackComplete();
         }
       } catch {
         if (request === latestRequest.current) {
           setPreview("");
           setStatus("We could not create this QR code. Try shorter text.");
+          trackValidationError();
         }
       }
     }, 120);
 
     return () => window.clearTimeout(timer);
-  }, [background, content, errorCorrection, foreground, margin]);
+  }, [background, content, errorCorrection, foreground, margin, trackComplete, trackValidationError]);
 
   async function downloadPng() {
+    trackStart();
     const cleanContent = content.trim();
-    if (!cleanContent) return;
+    if (!cleanContent) {
+      trackValidationError();
+      return;
+    }
 
     try {
       setStatus("Creating PNG…");
@@ -78,14 +92,21 @@ export function QRCodeTool() {
       });
       saveDownload(dataUrl, "webtaskkit-qr-code.png");
       setStatus(`Downloaded a ${size} × ${size} PNG.`);
+      trackComplete();
+      trackOutput();
     } catch {
       setStatus("PNG export failed. Please try again.");
+      trackValidationError();
     }
   }
 
   async function downloadSvg() {
+    trackStart();
     const cleanContent = content.trim();
-    if (!cleanContent) return;
+    if (!cleanContent) {
+      trackValidationError();
+      return;
+    }
 
     try {
       setStatus("Creating SVG…");
@@ -101,8 +122,11 @@ export function QRCodeTool() {
       saveDownload(url, "webtaskkit-qr-code.svg");
       window.setTimeout(() => URL.revokeObjectURL(url), 0);
       setStatus("Downloaded a scalable SVG.");
+      trackComplete();
+      trackOutput();
     } catch {
       setStatus("SVG export failed. Please try again.");
+      trackValidationError();
     }
   }
 
@@ -118,7 +142,7 @@ export function QRCodeTool() {
             className="tool-textarea"
             rows={4}
             value={content}
-            onChange={(event) => setContent(event.target.value)}
+            onChange={(event) => { trackStart(); setContent(event.target.value); }}
             placeholder="https://example.com or any short message"
             spellCheck={false}
           />
@@ -134,7 +158,7 @@ export function QRCodeTool() {
                 <input
                   type="color"
                   value={foreground}
-                  onChange={(event) => setForeground(event.target.value)}
+                  onChange={(event) => { trackStart(); setForeground(event.target.value); }}
                   aria-label="QR code foreground color"
                 />
                 <span>{foreground.toUpperCase()}</span>
@@ -146,7 +170,7 @@ export function QRCodeTool() {
                 <input
                   type="color"
                   value={background}
-                  onChange={(event) => setBackground(event.target.value)}
+                  onChange={(event) => { trackStart(); setBackground(event.target.value); }}
                   aria-label="QR code background color"
                 />
                 <span>{background.toUpperCase()}</span>
@@ -161,7 +185,7 @@ export function QRCodeTool() {
             <select
               className="tool-select"
               value={errorCorrection}
-              onChange={(event) => setErrorCorrection(event.target.value as ErrorCorrectionLevel)}
+              onChange={(event) => { trackStart(); setErrorCorrection(event.target.value as ErrorCorrectionLevel); }}
             >
               <option value="L">Low · 7%</option>
               <option value="M">Medium · 15%</option>
@@ -171,7 +195,7 @@ export function QRCodeTool() {
           </label>
           <label className="field-group">
             <span className="field-label">Export size</span>
-            <select className="tool-select" value={size} onChange={(event) => setSize(Number(event.target.value))}>
+            <select className="tool-select" value={size} onChange={(event) => { trackStart(); setSize(Number(event.target.value)); }}>
               <option value={512}>512 px</option>
               <option value={1024}>1024 px</option>
               <option value={2048}>2048 px</option>
@@ -179,7 +203,7 @@ export function QRCodeTool() {
           </label>
           <label className="field-group">
             <span className="field-label">Quiet zone</span>
-            <select className="tool-select" value={margin} onChange={(event) => setMargin(Number(event.target.value))}>
+            <select className="tool-select" value={margin} onChange={(event) => { trackStart(); setMargin(Number(event.target.value)); }}>
               <option value={2}>Narrow</option>
               <option value={4}>Standard</option>
               <option value={8}>Wide</option>

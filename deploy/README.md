@@ -28,8 +28,23 @@ The application has no database, uploaded files, runtime secrets, or writable
 state. Rollback is therefore a container replacement using the prior tagged
 image.
 
+## Privacy-minimized measurement logs
+
+The HTTPS include writes canonical request aggregates and accepted interaction
+events under
+`/home/ubuntu/offshorefocus_site/docker/nginx/event-logs/webtaskkit/`. The log
+formats omit IP addresses, arbitrary URL paths, query strings, referrers,
+cookies, user agents and tool contents. The application validates the exact
+event and page allowlists before Nginx records a canonical value.
+
+Before enabling the include, create the directory and empty `access.jsonl` and
+`events.jsonl` files with root ownership and mode `0640`. Install
+`deploy/logrotate/webtaskkit` as `/etc/logrotate.d/webtaskkit` with root
+ownership and mode `0644`. Validate with `logrotate --debug`, then run
+`docker exec offshorefocus_nginx nginx -t` before reloading Nginx. Logs rotate
+daily, are compressed and expire after 14 days.
+
 The VPS's generic Certbot systemd timer is masked and its package cron entry
 intentionally skips systemd hosts. WebTaskKit therefore uses its own twice-daily
 renewal entry and reloads the shared Nginx container only after a successful
 renewal.
-

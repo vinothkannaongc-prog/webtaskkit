@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useToolEvents } from "@/lib/useToolEvents";
 
 type Waveform = OscillatorType;
 
@@ -22,6 +23,12 @@ function sliderToFrequency(position: number) {
 
 export function ToneGeneratorTool() {
   const frequencyId = useId();
+  const {
+    start: trackStart,
+    complete: trackComplete,
+    output: trackOutput,
+    validationError: trackValidationError,
+  } = useToolEvents("/generators/tone");
   const audioContextRef = useRef<AudioContext | null>(null);
   const oscillatorRef = useRef<OscillatorNode | null>(null);
   const gainRef = useRef<GainNode | null>(null);
@@ -53,11 +60,15 @@ export function ToneGeneratorTool() {
     oscillatorRef.current = null;
     gainRef.current = null;
     setPlaying(false);
-    if (announce) setStatus("Tone stopped.");
-  }, []);
+    if (announce) {
+      setStatus("Tone stopped.");
+      if (context && oscillator && gain) trackOutput();
+    }
+  }, [trackOutput]);
 
   async function startTone() {
     if (playing) return;
+    trackStart();
     try {
       let context = audioContextRef.current;
       if (!context || context.state === "closed") {
@@ -87,8 +98,11 @@ export function ToneGeneratorTool() {
       gainRef.current = gain;
       setPlaying(true);
       setStatus(`Playing ${frequency.toLocaleString()} hertz at a limited output level.`);
+      trackComplete();
+      trackOutput();
     } catch {
       setStatus("Audio could not start. Check browser audio permission and try again.");
+      trackValidationError();
     }
   }
 
@@ -135,6 +149,7 @@ export function ToneGeneratorTool() {
   }, []);
 
   function setSafeFrequency(next: number) {
+    trackStart();
     if (!Number.isFinite(next)) return;
     setFrequency(clamp(Math.round(next), MIN_FREQUENCY, MAX_FREQUENCY));
   }
@@ -168,7 +183,7 @@ export function ToneGeneratorTool() {
             max={1000}
             step={1}
             value={sliderPosition}
-            onChange={(event) => setFrequency(sliderToFrequency(Number(event.target.value)))}
+            onChange={(event) => { trackStart(); setFrequency(sliderToFrequency(Number(event.target.value))); }}
             aria-label="Frequency, logarithmic scale from 20 to 20,000 hertz"
           />
           <div className="range-labels" aria-hidden="true"><span>20 Hz</span><span>20 kHz</span></div>
@@ -182,7 +197,7 @@ export function ToneGeneratorTool() {
                 key={preset}
                 className={frequency === preset ? "chip chip--active" : "chip"}
                 type="button"
-                onClick={() => setFrequency(preset)}
+                onClick={() => { trackStart(); setFrequency(preset); }}
                 aria-pressed={frequency === preset}
               >
                 {preset >= 1000 ? `${preset / 1000} kHz` : `${preset} Hz`}
@@ -193,7 +208,7 @@ export function ToneGeneratorTool() {
 
         <label className="field-group">
           <span className="field-label">Waveform</span>
-          <select className="tool-select" value={waveform} onChange={(event) => setWaveform(event.target.value as Waveform)}>
+          <select className="tool-select" value={waveform} onChange={(event) => { trackStart(); setWaveform(event.target.value as Waveform); }}>
             <option value="sine">Sine · smooth</option>
             <option value="triangle">Triangle · soft</option>
             <option value="square">Square · bright</option>
@@ -211,7 +226,7 @@ export function ToneGeneratorTool() {
             max={25}
             step={1}
             value={volume}
-            onChange={(event) => setVolume(Number(event.target.value))}
+            onChange={(event) => { trackStart(); setVolume(Number(event.target.value)); }}
           />
           <p className="field-hint">Output is capped at 25%. Your device volume still applies.</p>
         </div>

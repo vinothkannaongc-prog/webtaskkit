@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useToolEvents } from "@/lib/useToolEvents";
 
 const MAX_FILE_BYTES = 750_000;
 const STARTER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
@@ -88,6 +89,12 @@ function safeSvgFilename(filename: string) {
 
 export function SvgEditorTool() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const {
+    start: trackStart,
+    complete: trackComplete,
+    output: trackOutput,
+    validationError: trackValidationError,
+  } = useToolEvents("/editors/svg");
   const [source, setSource] = useState(STARTER_SVG);
   const [filename, setFilename] = useState("webtaskkit-sample.svg");
   const [status, setStatus] = useState("Safe preview ready.");
@@ -109,41 +116,58 @@ export function SvgEditorTool() {
     }
   }, [canUseDomParser, source]);
 
+  useEffect(() => {
+    if (sanitized.error) {
+      trackValidationError();
+    } else if (sanitized.result) {
+      trackComplete();
+    }
+  }, [sanitized.error, sanitized.result, trackComplete, trackValidationError]);
+
   function updateSource(value: string) {
+    trackStart();
     if (new Blob([value]).size > MAX_FILE_BYTES) {
       setStatus("That SVG is over the 750 KB editor limit.");
-      return;
+      trackValidationError();
+      return false;
     }
     setSource(value);
     setStatus("SVG checked locally.");
+    return true;
   }
 
   async function loadFile(file: File | undefined) {
     if (!file) return;
+    trackStart();
     if (file.size > MAX_FILE_BYTES) {
       setStatus("That SVG is over the 750 KB editor limit. Choose a smaller file.");
+      trackValidationError();
       return;
     }
     if (!file.name.toLowerCase().endsWith(".svg")) {
       setStatus("Choose a file ending in .svg.");
+      trackValidationError();
       return;
     }
 
     try {
       const contents = await file.text();
-      updateSource(contents);
+      if (!updateSource(contents)) return;
       setFilename(file.name);
       setStatus(`${file.name} loaded and checked locally.`);
     } catch {
       setStatus("WebTaskKit could not read that SVG file.");
+      trackValidationError();
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
   function downloadCleanSvg() {
+    trackStart();
     if (!sanitized.result) {
       setStatus("Fix the SVG error before downloading.");
+      trackValidationError();
       return;
     }
     const blob = new Blob([sanitized.result.markup], { type: "image/svg+xml;charset=utf-8" });
@@ -154,6 +178,8 @@ export function SvgEditorTool() {
     anchor.click();
     URL.revokeObjectURL(url);
     setStatus("Clean SVG downloaded.");
+    trackComplete();
+    trackOutput();
   }
 
   const byteCount = new Blob([source]).size;
@@ -190,7 +216,7 @@ export function SvgEditorTool() {
         />
         <div className="input-meta help-text">
           <span>{byteCount.toLocaleString()} / {MAX_FILE_BYTES.toLocaleString()} bytes</span>
-          <button className="text-action" type="button" onClick={() => { setSource(STARTER_SVG); setFilename("webtaskkit-sample.svg"); setStatus("Sample restored."); }}>
+          <button className="text-action" type="button" onClick={() => { trackStart(); setSource(STARTER_SVG); setFilename("webtaskkit-sample.svg"); setStatus("Sample restored."); }}>
             Restore sample
           </button>
         </div>

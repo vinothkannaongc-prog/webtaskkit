@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { useToolEvents } from "@/lib/useToolEvents";
 
 const MAX_FILE_BYTES = 500_000;
 const MILLIMETRES_PER_POINT = 0.352778;
@@ -19,6 +20,12 @@ function safePdfName(title: string) {
 
 export function TxtToPdfTool() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const {
+    start: trackStart,
+    complete: trackComplete,
+    output: trackOutput,
+    validationError: trackValidationError,
+  } = useToolEvents("/converters/txt-to-pdf");
   const [text, setText] = useState("");
   const [title, setTitle] = useState("");
   const [pageSize, setPageSize] = useState<PageSize>("a4");
@@ -33,48 +40,58 @@ export function TxtToPdfTool() {
   );
 
   function updateText(value: string) {
+    trackStart();
     const nextSize = new Blob([value]).size;
     if (nextSize > MAX_FILE_BYTES) {
       setStatus("That text is over the 500 KB limit. Shorten it, then try again.");
-      return;
+      trackValidationError();
+      return false;
     }
     setText(value);
     setStatus(value ? "Text is ready to convert." : "Ready for a text file or pasted text.");
+    return true;
   }
 
   async function loadFile(file: File | undefined) {
     if (!file) return;
+    trackStart();
     if (file.size > MAX_FILE_BYTES) {
       setStatus("That file is over the 500 KB limit. Choose a smaller TXT, MD, or LOG file.");
+      trackValidationError();
       return;
     }
 
     const extension = file.name.split(".").pop()?.toLowerCase();
     if (!extension || !["txt", "md", "log"].includes(extension)) {
       setStatus("Choose a .txt, .md, or .log file.");
+      trackValidationError();
       return;
     }
 
     try {
       const contents = await file.text();
-      updateText(contents);
+      if (!updateText(contents)) return;
       if (!title) setTitle(file.name.replace(/\.[^.]+$/, ""));
       setStatus(`${file.name} is ready to convert.`);
     } catch {
       setStatus("WebTaskKit could not read that file. Try another plain-text file.");
+      trackValidationError();
     } finally {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }
 
   async function downloadPdf() {
+    trackStart();
     if (!text.trim()) {
       setStatus("Add some text before creating a PDF.");
+      trackValidationError();
       return;
     }
 
     if (new Blob([text]).size > MAX_FILE_BYTES) {
       setStatus("That text is over the 500 KB limit. Shorten it, then try again.");
+      trackValidationError();
       return;
     }
 
@@ -128,8 +145,11 @@ export function TxtToPdfTool() {
       });
       pdf.save(safePdfName(title));
       setStatus("PDF created and downloaded.");
+      trackComplete();
+      trackOutput();
     } catch {
       setStatus("The PDF could not be created. Try less text or a smaller font size.");
+      trackValidationError();
     }
   }
 
@@ -163,7 +183,7 @@ export function TxtToPdfTool() {
             type="text"
             value={title}
             maxLength={120}
-            onChange={(event) => setTitle(event.target.value)}
+            onChange={(event) => { trackStart(); setTitle(event.target.value); }}
             placeholder="Project notes"
           />
         </div>
@@ -201,7 +221,7 @@ export function TxtToPdfTool() {
               className="form-control"
               id="pdf-page-size"
               value={pageSize}
-              onChange={(event) => setPageSize(event.target.value as PageSize)}
+              onChange={(event) => { trackStart(); setPageSize(event.target.value as PageSize); }}
             >
               <option value="a4">A4</option>
               <option value="letter">US Letter</option>
@@ -213,7 +233,7 @@ export function TxtToPdfTool() {
               className="form-control"
               id="pdf-font-size"
               value={fontSize}
-              onChange={(event) => setFontSize(Number(event.target.value))}
+              onChange={(event) => { trackStart(); setFontSize(Number(event.target.value)); }}
             >
               {[9, 10, 11, 12, 14, 16].map((size) => <option key={size} value={size}>{size} pt</option>)}
             </select>
@@ -229,7 +249,7 @@ export function TxtToPdfTool() {
             max="30"
             step="1"
             value={margin}
-            onChange={(event) => setMargin(Number(event.target.value))}
+            onChange={(event) => { trackStart(); setMargin(Number(event.target.value)); }}
           />
         </label>
 
@@ -250,7 +270,7 @@ export function TxtToPdfTool() {
         <button
           className="button button--ghost button--wide"
           type="button"
-          onClick={() => { setText(""); setTitle(""); setStatus("Text cleared."); }}
+          onClick={() => { trackStart(); setText(""); setTitle(""); setStatus("Text cleared."); }}
           disabled={!text && !title}
         >
           Clear

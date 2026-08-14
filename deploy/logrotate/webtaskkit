@@ -1,0 +1,17 @@
+/home/ubuntu/offshorefocus_site/docker/nginx/event-logs/webtaskkit/*.jsonl {
+    daily
+    rotate 13
+    maxage 14
+    missingok
+    notifempty
+    compress
+    delaycompress
+    dateext
+    dateformat -%Y%m%d
+    create 0640 root root
+    su root root
+    sharedscripts
+    postrotate
+        /usr/bin/docker kill --signal=USR1 offshorefocus_nginx >/dev/null 2>&1 || true
+    endscript
+}
