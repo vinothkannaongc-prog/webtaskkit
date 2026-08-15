@@ -48,6 +48,44 @@ ownership and mode `0644`. Validate with `logrotate --debug`, then run
 `docker exec offshorefocus_nginx nginx -t` before reloading Nginx. Logs rotate
 daily, are compressed and expire after 14 days.
 
+## Privacy-safe aggregate report
+
+`scripts/privacy-log-report.mjs` turns the privacy logs into deterministic
+aggregate JSON without printing file names or raw records. Give it an explicit
+half-open reporting window and list every active or rotated input exactly once.
+Plain JSONL and gzip-compressed rotated files are supported.
+
+```sh
+node scripts/privacy-log-report.mjs \
+  --since 2026-08-14T09:48:22Z \
+  --until 2026-08-15T09:48:22Z \
+  --access /home/ubuntu/offshorefocus_site/docker/nginx/event-logs/webtaskkit/access.jsonl \
+  --events /home/ubuntu/offshorefocus_site/docker/nginx/event-logs/webtaskkit/events.jsonl
+```
+
+Repeat `--access` and `--events` for each rotated file that overlaps the
+window. The reporter accepts only the exact deployed site, method, path, status
+and event schemas. An unknown or expanded record makes the run fail without
+echoing the rejected record. Successful output contains counts, status classes,
+5xx rate, request/upstream-latency percentiles and unpaired completed-to-started
+event-count ratios. Those ratios are not user- or session-level conversions,
+and request counts must not be interpreted as users, visitors or visits.
+
+Each run is limited to 32 files per log type, 64 MiB per compressed input and
+64 MiB after decompression, one million combined records, and a reporting
+window of at most 31 days. Inputs must be distinct regular files; aliases to the
+same physical file are refused. Timestamps require valid calendar dates and
+explicit timezones, and records must be strict UTF-8. For Nginx multi-upstream
+timings, numeric comma/colon-separated attempts are summed per request; an
+empty value or a value containing only dashes is treated as missing.
+
+The event log uses a five-second write buffer. Wait at least five seconds after
+the end of the reporting window before reading the active file. The reporter
+captures each input's size before reading and excludes later appends, so do not
+start a run across daily rotation. If a window crosses a completed rotation,
+wait for the Nginx reopen and pass both the rotated file and the active file
+exactly once.
+
 The VPS's generic Certbot systemd timer is masked and its package cron entry
 intentionally skips systemd hosts. WebTaskKit therefore uses its own twice-daily
 renewal entry and reloads the shared Nginx container only after a successful
