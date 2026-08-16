@@ -90,3 +90,53 @@ The VPS's generic Certbot systemd timer is masked and its package cron entry
 intentionally skips systemd hosts. WebTaskKit therefore uses its own twice-daily
 renewal entry and reloads the shared Nginx container only after a successful
 renewal.
+
+## Once-daily external health evidence
+
+Run `node scripts/public-site-health-report.mjs` from the external desktop
+automation once per day. The reporter has no command-line options: its hosts,
+URLs, redirects, sitemap URL set, limits and TLS policy are fixed for
+`webtaskkit.com`. It sends one request to each HTTP/HTTPS apex and `www`
+redirect, plus the HTTPS homepage, robots policy and sitemap. Redirects are not
+followed, each request has an eight-second timeout and a bounded response body,
+and failures are not retried. It sends no cookies, query strings, referrer,
+custom body or operator-supplied headers.
+
+The six HTTP probes and two TLS handshakes run sequentially, so their fixed
+eight-second per-probe limits bound one run to 64 seconds plus timer scheduling;
+there is no retry loop that can extend the run indefinitely.
+
+The same run performs two TLS handshakes, one for the apex and one for `www`,
+using SNI and Node's normal CA and hostname validation. TLS 1.2 or newer is
+required, and fewer than 21 days to certificate expiry fails the report. Each
+handshake has an absolute eight-second deadline, and its socket is destroyed
+immediately after the certificate expiry and negotiated protocol are captured.
+The homepage must retain the exact WebTaskKit title, application identity and
+one canonical link to `https://webtaskkit.com`. The robots policy must continue
+to allow public crawling and name the exact canonical sitemap. The sitemap must
+match the current application serializer exactly: all 12 HTTPS URLs in order,
+with their current `changefreq` and lexical `priority` values. Invalid XML
+characters, comments, CDATA, DTDs, entities, extensions, foreign or unknown
+elements, reordered fields and URL query strings or fragments fail closed.
+
+Successful or failed runs emit only aggregate JSON: fixed-site status counts,
+bounded timings, minimum certificate lifetime, URL count and fixed failure
+codes. IP addresses, DNS answers, certificate serials, headers and response
+content are never emitted. A failed contract or probe exits nonzero.
+
+This is once-daily external point-in-time evidence, not continuous monitoring,
+an uptime SLA or a replacement for an authorized independent monitor. Each run
+deliberately makes six synthetic HTTP requests and two TLS handshakes. A healthy
+run contributes three known GETs (homepage, robots and sitemap) to the apex
+privacy access aggregate; do not interpret those requests as visits or users.
+The Node probe does not execute the Cloudflare Web Analytics browser beacon or
+send first-party tool events.
+
+This is not a general-purpose or user-directed URL fetcher. DNS/IP pinning is
+therefore deliberately out of scope: every hostname, path and request field is
+compiled into the script, HTTPS requires a normally trusted certificate for
+that exact SNI hostname, and the three plain-HTTP checks send only an anonymous
+`GET /` with no cookies, credentials, query, referrer or body and never follow
+the response. A poisoned DNS answer could receive only that fixed empty probe;
+it cannot select a target, inherit operator secrets or redirect the reporter to
+another address. Response reads remain bounded and raw content is discarded.
