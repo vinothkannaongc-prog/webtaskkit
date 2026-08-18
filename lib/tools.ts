@@ -53,6 +53,16 @@ export const tools: ToolDefinition[] = [
     accent: "blue",
   },
   {
+    slug: "pdf-to-jpg",
+    name: "PDF to JPG Converter",
+    shortName: "PDF to JPG",
+    category: "Converters",
+    description: "Export selected PDF pages as JPG or PNG images locally, with one tidy download.",
+    href: "/converters/pdf-to-jpg",
+    symbol: "JPG",
+    accent: "blue",
+  },
+  {
     slug: "svg",
     name: "SVG Editor",
     shortName: "SVG editor",

@@ -176,15 +176,15 @@ test("returns a zero-safe aggregate for empty logs", async (t) => {
   }
 });
 
-test("accepts the image converter only as an exact access and event path", async (t) => {
+test("accepts both PDF converters only as exact access and event paths", async (t) => {
   const directory = await fixtureDirectory(t);
   const accessFile = join(directory, "access.jsonl");
   const eventFile = join(directory, "events.jsonl");
-  const path = "/converters/image-to-pdf";
-  await writeJsonl(accessFile, [access({ path })]);
+  const paths = ["/converters/image-to-pdf", "/converters/pdf-to-jpg"];
+  await writeJsonl(accessFile, paths.map((path) => access({ path })));
   await writeJsonl(eventFile, [
-    event({ path }),
-    event({ event: "tool_completed", path }),
+    ...paths.map((path) => event({ path })),
+    ...paths.map((path) => event({ event: "tool_completed", path })),
   ]);
 
   const report = await buildPrivacyLogReport({
@@ -193,13 +193,15 @@ test("accepts the image converter only as an exact access and event path", async
     since: SINCE,
     until: UNTIL,
   });
-  assert.equal(report.access.by_path[path], 1);
-  assert.equal(report.events.by_path[path].tool_started, 1);
-  assert.equal(report.events.by_path[path].tool_completed, 1);
-  assert.equal(
-    report.events.unpaired_event_count_ratios.by_path[path].tool_completed_per_tool_started,
-    1,
-  );
+  for (const path of paths) {
+    assert.equal(report.access.by_path[path], 1);
+    assert.equal(report.events.by_path[path].tool_started, 1);
+    assert.equal(report.events.by_path[path].tool_completed, 1);
+    assert.equal(
+      report.events.unpaired_event_count_ratios.by_path[path].tool_completed_per_tool_started,
+      1,
+    );
+  }
 });
 
 test("CLI prints only aggregate JSON and keeps input names out of output", async (t) => {

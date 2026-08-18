@@ -37,21 +37,21 @@ const copy: Record<ToolCategory, CategoryCopy> = {
     ],
   },
   Converters: {
-    lead: "Turn plain text or a set of images into a practical PDF without uploading the source files.",
-    body: "Choose TXT to PDF for readable pagination of notes, logs and instructions, or Image to PDF when each JPG or PNG should become one ordered page. Both converters run locally and favor predictable output over elaborate document design.",
+    lead: "Turn plain text or images into a practical PDF, or export PDF pages as images, without uploading source files.",
+    body: "Choose TXT to PDF for readable notes, Image to PDF when each JPG or PNG should become one ordered page, or PDF to JPG when selected document pages need to become images. Each converter runs locally and favors predictable output over elaborate document design.",
     choiceTitle: "Choose the right path into PDF",
     choices: [
       { href: "/converters/txt-to-pdf", title: "Convert notes, logs and instructions", text: "Choose page size, margins, font size and an optional title, then review the downloaded PDF." },
       { href: "/converters/image-to-pdf", title: "Combine JPG and PNG pages", text: "Arrange supported images, choose the paper setup and place each image on its own PDF page without cropping." },
-      { href: "/editors/text", title: "Clean text before conversion", text: "Normalize spaces, sort a list or confirm word and line counts before fixing the content into pages." },
+      { href: "/converters/pdf-to-jpg", title: "Export PDF pages as images", text: "Choose a bounded page range, JPG or PNG, and a render resolution, then download one image or a page-numbered ZIP." },
     ],
     workflow: [
-      { title: "Prepare the source", text: "Clean plain text or select clear JPG and PNG files, preserving originals before you make the PDF." },
-      { title: "Choose for the reader", text: "Select A4 or US Letter, then choose margins, type size or image orientation for the intended screen or printer." },
-      { title: "Inspect before sending", text: "Open the result and check page order, breaks, characters, image rotation and fine detail before sharing it." },
+      { title: "Prepare the source", text: "Clean plain text, choose clear images or identify the PDF pages you need, preserving the original before conversion." },
+      { title: "Choose for the reader", text: "Select a page setup for new PDFs, or choose JPG versus PNG and a practical resolution for page images." },
+      { title: "Inspect before sending", text: "Open the result and check page order, breaks, characters, image rotation, form content and fine detail before sharing it." },
     ],
     boundaryTitle: "Focused conversion, not a document-design system",
-    boundary: "Conversion stays in the browser, but these tools do not provide rich layouts, OCR, collaboration, image editing or archival certification. Use a full document or scanning application when you need styled mixed content, searchable image text, accessibility remediation or production print controls.",
+    boundary: "Conversion stays in the browser, but these tools do not provide rich layouts, OCR, collaboration, PDF annotation export, image editing or archival certification. Use a full document or scanning application when you need styled mixed content, searchable image text, accessibility remediation or production print controls.",
     related: [
       { href: "/editors", label: "Edit before you convert", text: "Prepare plain text or work separately with vector artwork using the focused editors." },
       { href: "/generators", label: "Create a code for the next step", text: "Generate a QR code for a public document link or a barcode for a compatible identifier system." },

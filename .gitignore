@@ -37,6 +37,7 @@ yarn-error.log*
 /dist/
 /.wrangler/
 /outputs/
+/public/pdfjs/
 /work/
 *.tsbuildinfo
 dev.stdout.log

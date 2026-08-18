@@ -26,8 +26,9 @@ const siteUrl = "https://webtaskkit.com";
 const relatedToolSlugs: Record<string, string[]> = {
   "qr-code": ["barcode", "tone", "svg"],
   barcode: ["qr-code", "tone", "txt-to-pdf"],
-  "txt-to-pdf": ["image-to-pdf", "text", "svg"],
-  "image-to-pdf": ["txt-to-pdf", "svg", "qr-code"],
+  "txt-to-pdf": ["image-to-pdf", "pdf-to-jpg", "text"],
+  "image-to-pdf": ["pdf-to-jpg", "txt-to-pdf", "svg"],
+  "pdf-to-jpg": ["image-to-pdf", "txt-to-pdf", "text"],
   svg: ["text", "qr-code", "barcode"],
   text: ["svg", "txt-to-pdf", "qr-code"],
   tone: ["qr-code", "barcode", "text"],

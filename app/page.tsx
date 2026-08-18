@@ -4,7 +4,7 @@ import { categoryLinks } from "@/lib/tools";
 
 export const metadata: Metadata = {
   title: { absolute: "WebTaskKit — Fast, Private Online Tools" },
-  description: "Free browser tools for QR codes, barcodes, text and image-to-PDF conversion, SVG and text editing, and tone generation. No signup; your files stay on your device.",
+  description: "Free browser tools for QR codes, barcodes, PDF and image conversion, SVG and text editing, and tone generation. No signup; your files stay on your device.",
   alternates: { canonical: "/" },
 };
 
@@ -50,7 +50,7 @@ export default function Home() {
               <a href="/generators/qr-code" className="workbench-item is-active"><span>QR</span><b>Create a QR code</b><i>→</i></a>
               <a href="/converters/txt-to-pdf" className="workbench-item"><span>PDF</span><b>Convert text to PDF</b><i>→</i></a>
               <a href="/converters/image-to-pdf" className="workbench-item"><span>IMG</span><b>Combine images into PDF</b><i>→</i></a>
-              <a href="/editors/svg" className="workbench-item"><span>&lt;/&gt;</span><b>Edit an SVG</b><i>→</i></a>
+              <a href="/converters/pdf-to-jpg" className="workbench-item"><span>JPG</span><b>Export PDF pages</b><i>→</i></a>
               <a href="/generators/tone" className="workbench-item"><span>Hz</span><b>Play an audio tone</b><i>→</i></a>
               <div className="workbench-status"><span>●</span> Ready. Your work stays local.</div>
             </div>

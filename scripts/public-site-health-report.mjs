@@ -23,6 +23,7 @@ export const EXPECTED_SITEMAP_ENTRIES = Object.freeze([
   ["/generators/barcode", "monthly", "0.8"],
   ["/converters/txt-to-pdf", "monthly", "0.8"],
   ["/converters/image-to-pdf", "monthly", "0.8"],
+  ["/converters/pdf-to-jpg", "monthly", "0.8"],
   ["/editors/svg", "monthly", "0.8"],
   ["/editors/text", "monthly", "0.8"],
   ["/generators/tone", "monthly", "0.8"],

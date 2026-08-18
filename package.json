@@ -6,15 +6,19 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "predev": "node scripts/stage-pdfjs-assets.mjs",
     "dev": "vinext dev",
+    "prebuild": "node scripts/stage-pdfjs-assets.mjs",
     "build": "vinext build",
     "start": "vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/privacy-log-report.test.mjs tests/public-site-health-report.test.mjs tests/image-to-pdf.test.mjs",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next"
+    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/privacy-log-report.test.mjs tests/public-site-health-report.test.mjs tests/image-to-pdf.test.mjs tests/pdf-to-image.test.mjs",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern public/pdfjs"
   },
   "dependencies": {
+    "fflate": "0.8.3",
     "jsbarcode": "^3.12.1",
     "jspdf": "4.2.1",
+    "pdfjs-dist": "6.2.108",
     "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"

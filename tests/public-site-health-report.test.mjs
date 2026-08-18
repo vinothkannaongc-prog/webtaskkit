@@ -177,8 +177,8 @@ test("builds aggregate-only evidence for the fixed WebTaskKit contract", async (
   assert.deepEqual(report.robots, { valid: true });
   assert.deepEqual(report.sitemap, {
     valid: true,
-    canonical_urls: 13,
-    expected_canonical_urls: 13,
+    canonical_urls: 14,
+    expected_canonical_urls: 14,
   });
   assert.deepEqual(report.failure_codes, []);
   assert.equal(publicSiteHealthExitCode(report), 0);
@@ -266,6 +266,7 @@ test("requires the exact ordered sitemap serializer contract", () => {
     { url: "https://webtaskkit.com/generators/barcode", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/converters/txt-to-pdf", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/converters/image-to-pdf", changeFrequency: "monthly", priority: "0.8" },
+    { url: "https://webtaskkit.com/converters/pdf-to-jpg", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/editors/svg", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/editors/text", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/generators/tone", changeFrequency: "monthly", priority: "0.8" },

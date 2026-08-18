@@ -11,6 +11,7 @@ export const TOOL_EVENT_PATHS = [
   "/generators/tone",
   "/converters/txt-to-pdf",
   "/converters/image-to-pdf",
+  "/converters/pdf-to-jpg",
   "/editors/svg",
   "/editors/text",
 ] as const;

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import test from "node:test";
 
 const workerUrl = new URL("../dist/server/index.js", import.meta.url);
@@ -33,6 +33,7 @@ test("server-renders the WebTaskKit home page", async () => {
   assert.match(html, /A practical toolkit/);
   assert.match(html, /QR Code Generator/);
   assert.match(html, /Image to PDF Converter/);
+  assert.match(html, /PDF to JPG Converter/);
   assert.match(html, /https:\/\/webtaskkit\.com\/webtaskkit-og\.png/);
   assert.match(html, /https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js/);
   assert.match(html, /data-cf-beacon="[^"]*a23077944fb94f7dacc69f53f208f2e9/);
@@ -70,6 +71,7 @@ test("tool pages explain real workflows, boundaries and contextual next steps", 
     ["/generators/tone/", "Compare a musical pitch", "does not measure acoustic output", "/converters/txt-to-pdf"],
     ["/converters/txt-to-pdf/", "Meeting notes and handoffs", "Markdown symbols are treated as ordinary text", "/converters/image-to-pdf"],
     ["/converters/image-to-pdf/", "Scan a signed packet", "Only still JPEG and PNG files are accepted", "/converters/txt-to-pdf"],
+    ["/converters/pdf-to-jpg/", "Share one slide as an image", "Interactive form fields", "/converters/image-to-pdf"],
     ["/editors/svg/", "Repair scaling behavior", "not a substitute for your application", "/generators/barcode"],
     ["/editors/text/", "Clean copied notes", "Nothing is autosaved", "/converters/txt-to-pdf"],
   ];
@@ -109,6 +111,7 @@ test("sitemap always uses the production origin", async () => {
   const xml = await response.text();
   assert.match(xml, /https:\/\/webtaskkit\.com\/generators\/qr-code/);
   assert.match(xml, /https:\/\/webtaskkit\.com\/converters\/image-to-pdf/);
+  assert.match(xml, /https:\/\/webtaskkit\.com\/converters\/pdf-to-jpg/);
   assert.doesNotMatch(xml, /webtaskkit\.test/);
 });
 
@@ -148,6 +151,7 @@ test("event endpoint accepts only allowlisted names and canonical tool paths", a
     "/generators/tone",
     "/converters/txt-to-pdf",
     "/converters/image-to-pdf",
+    "/converters/pdf-to-jpg",
     "/editors/svg",
     "/editors/text",
   ];
@@ -215,7 +219,7 @@ test("event endpoint does not collect through GET or OPTIONS", async () => {
   assert.equal(optionsResponse.headers.get("access-control-allow-origin"), null);
 });
 
-test("all seven tools use the minimal best-effort first-party event client", async () => {
+test("all eight tools use the minimal best-effort first-party event client", async () => {
   const eventClient = await readFile(new URL("../lib/useToolEvents.ts", import.meta.url), "utf8");
   assert.match(eventClient, /fetch\("\/__events"/);
   assert.match(eventClient, /credentials:\s*"omit"/);
@@ -230,6 +234,7 @@ test("all seven tools use the minimal best-effort first-party event client", asy
     ["../components/tools/ToneGeneratorTool.tsx", "/generators/tone"],
     ["../components/tools/TxtToPdfTool.tsx", "/converters/txt-to-pdf"],
     ["../components/tools/ImageToPdfTool.tsx", "/converters/image-to-pdf"],
+    ["../components/tools/PdfToImageTool.tsx", "/converters/pdf-to-jpg"],
     ["../components/tools/SvgEditorTool.tsx", "/editors/svg"],
     ["../components/tools/TextEditorTool.tsx", "/editors/text"],
   ];
@@ -244,7 +249,7 @@ test("all seven tools use the minimal best-effort first-party event client", asy
   }
 });
 
-test("production privacy logging maps the image converter only to its canonical path", async () => {
+test("production privacy logging maps both file converters only to canonical paths", async () => {
   const source = await readFile(new URL("../deploy/nginx/webtaskkit-https.conf", import.meta.url), "utf8");
   const accessMap = /map \$uri \$webtaskkit_access_path \{([\s\S]*?)\n\}/.exec(source)?.[1] ?? "";
   const eventMap = /map \$upstream_http_x_event_path \$webtaskkit_event_path \{([\s\S]*?)\n\}/.exec(source)?.[1] ?? "";
@@ -252,7 +257,72 @@ test("production privacy logging maps the image converter only to its canonical 
 
   for (const map of [accessMap, eventMap]) {
     assert.match(map, /^\s*\/converters\/image-to-pdf \/converters\/image-to-pdf;\s*$/m);
+    assert.match(map, /^\s*\/converters\/pdf-to-jpg \/converters\/pdf-to-jpg;\s*$/m);
     assert.doesNotMatch(map, /image-to-pdf[?#]/);
+    assert.doesNotMatch(map, /pdf-to-jpg[?#]/);
   }
-  assert.match(loggableMap, /converters\/\(txt-to-pdf\|image-to-pdf\)/);
+  assert.match(loggableMap, /converters\/\(txt-to-pdf\|image-to-pdf\|pdf-to-jpg\)/);
+});
+
+test("the PDF converter bundles its worker and decoder assets on the site origin", async () => {
+  const root = new URL("../dist/client/pdfjs/6.2.108/", import.meta.url);
+  const worker = await stat(new URL("pdf.worker.min.mjs", root));
+  assert.ok(worker.isFile());
+  assert.ok(worker.size > 1_000_000);
+
+  const [cmaps, fonts, wasm] = await Promise.all([
+    readdir(new URL("cmaps/", root)),
+    readdir(new URL("standard_fonts/", root)),
+    readdir(new URL("wasm/", root)),
+  ]);
+  assert.ok(cmaps.length >= 160, "expected the packed PDF.js CMap set");
+  assert.ok(fonts.length >= 16, "expected the PDF.js standard-font set");
+  assert.ok(wasm.includes("openjpeg.wasm"));
+  assert.ok(wasm.includes("jbig2.wasm"));
+  assert.ok(wasm.includes("qcms_bg.wasm"));
+});
+
+test("the PDF converter preflights reads, has one absolute deadline, cancellation, and linked range errors", async () => {
+  const source = await readFile(new URL("../components/tools/PdfToImageTool.tsx", import.meta.url), "utf8");
+  const metadataCheck = source.indexOf("validatePdfFileMetadata({ name: file.name, sizeBytes: file.size })");
+  const fileRead = source.indexOf("await file.arrayBuffer()");
+  assert.ok(metadataCheck >= 0 && fileRead > metadataCheck, "metadata must be checked before allocating file bytes");
+  assert.match(source, /beginOperation\("inspect"\)/);
+  assert.match(source, /beginOperation\("convert"\)/);
+  assert.match(source, /createPdfOperationDeadline\(performance\.now\(\), timeoutMilliseconds\)/);
+  assert.match(source, /stopOperation\(active\.id, "cancelled"\)/);
+  assert.match(source, /\.task\.destroy\(\)/);
+  assert.match(source, /\.task\.cancel\(\)/);
+  assert.match(source, /setCustomValidity\(pageRangeError\)/);
+  assert.match(source, /aria-errormessage=\{pageRangeError \? rangeErrorId : undefined\}/);
+  assert.match(source, /\{controlsDisabled \? "Cancel" : "Clear PDF"\}/);
+  assert.match(source, /\/pdfjs\/\$\{PDFJS_VERSION\}\//);
+  const cancelHandler = source.slice(
+    source.indexOf("function cancelCurrentOperation"),
+    source.indexOf("async function convertPdf"),
+  );
+  assert.doesNotMatch(cancelHandler, /trackValidationError|trackComplete|trackOutput/);
+
+  const downloadHandler = source.slice(
+    source.indexOf("function initiateDownload"),
+    source.indexOf("useEffect(() =>", source.indexOf("function initiateDownload")),
+  );
+  const objectUrlIndex = downloadHandler.indexOf("URL.createObjectURL");
+  const finalGuardIndex = downloadHandler.indexOf("operationIsActive(operation)");
+  const clickIndex = downloadHandler.indexOf("link.click()");
+  const finishIndex = downloadHandler.indexOf("finishOperation(operation)");
+  const clearBusyIndex = downloadHandler.indexOf("setBusy(null)");
+  assert.ok(
+    objectUrlIndex >= 0
+      && finalGuardIndex > objectUrlIndex
+      && clickIndex > finalGuardIndex
+      && finishIndex > clickIndex
+      && clearBusyIndex > finishIndex,
+    "download ownership must be guarded after object-URL creation and finished synchronously after click",
+  );
+  assert.match(downloadHandler, /if \(!operationIsActive\(operation\)\) \{[\s\S]*?URL\.revokeObjectURL\(url\);[\s\S]*?return false;/);
+
+  const conversionHandler = source.slice(source.indexOf("async function convertPdf"));
+  assert.equal((conversionHandler.match(/if \(!initiateDownload\(/g) ?? []).length, 2);
+  assert.ok(conversionHandler.lastIndexOf("if (!initiateDownload(") < conversionHandler.indexOf("trackComplete()"));
 });
