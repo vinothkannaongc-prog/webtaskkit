@@ -22,7 +22,7 @@ const ACCESS_METHODS = ["GET", "HEAD", "POST", "OPTIONS", "OTHER"];
 const ACCESS_PATHS = [
   "/", "/about", "/privacy", "/generators", "/generators/qr-code",
   "/generators/barcode", "/generators/tone", "/converters",
-  "/converters/txt-to-pdf", "/editors", "/editors/svg", "/editors/text",
+  "/converters/txt-to-pdf", "/converters/image-to-pdf", "/editors", "/editors/svg", "/editors/text",
   "/robots.txt", "/sitemap.xml", "/_other",
 ];
 const EVENT_NAMES = [
@@ -30,7 +30,7 @@ const EVENT_NAMES = [
 ];
 const EVENT_PATHS = [
   "/generators/qr-code", "/generators/barcode", "/generators/tone",
-  "/converters/txt-to-pdf", "/editors/svg", "/editors/text",
+  "/converters/txt-to-pdf", "/converters/image-to-pdf", "/editors/svg", "/editors/text",
 ];
 const STATUS_CLASSES = ["1xx", "2xx", "3xx", "4xx", "5xx"];
 

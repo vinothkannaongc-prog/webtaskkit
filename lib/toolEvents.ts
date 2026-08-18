@@ -10,6 +10,7 @@ export const TOOL_EVENT_PATHS = [
   "/generators/barcode",
   "/generators/tone",
   "/converters/txt-to-pdf",
+  "/converters/image-to-pdf",
   "/editors/svg",
   "/editors/text",
 ] as const;

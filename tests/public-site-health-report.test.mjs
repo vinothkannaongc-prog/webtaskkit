@@ -177,8 +177,8 @@ test("builds aggregate-only evidence for the fixed WebTaskKit contract", async (
   assert.deepEqual(report.robots, { valid: true });
   assert.deepEqual(report.sitemap, {
     valid: true,
-    canonical_urls: 12,
-    expected_canonical_urls: 12,
+    canonical_urls: 13,
+    expected_canonical_urls: 13,
   });
   assert.deepEqual(report.failure_codes, []);
   assert.equal(publicSiteHealthExitCode(report), 0);
@@ -265,6 +265,7 @@ test("requires the exact ordered sitemap serializer contract", () => {
     { url: "https://webtaskkit.com/generators/qr-code", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/generators/barcode", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/converters/txt-to-pdf", changeFrequency: "monthly", priority: "0.8" },
+    { url: "https://webtaskkit.com/converters/image-to-pdf", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/editors/svg", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/editors/text", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/generators/tone", changeFrequency: "monthly", priority: "0.8" },
@@ -290,7 +291,7 @@ test("rejects hostile extensions, foreign markup, reordering, and lexical sitema
     sitemapBody().replace("https://webtaskkit.com/", "<![CDATA[https://webtaskkit.com/]]>"),
     sitemapBody().replace("https://webtaskkit.com/about", "https://webtaskkit.com/&custom;"),
     sitemapBody(changedEntries(0, { url: "https://example.com/" })),
-    sitemapBody(changedEntries(11, { url: EXPECTED_SITEMAP_URLS[0] })),
+    sitemapBody(changedEntries(EXPECTED_SITEMAP_ENTRIES.length - 1, { url: EXPECTED_SITEMAP_URLS[0] })),
     sitemapBody(changedEntries(1, { url: `${EXPECTED_SITEMAP_URLS[1]}?probe=1` })),
     sitemapBody(changedEntries(1, { url: `${EXPECTED_SITEMAP_URLS[1]}#fragment` })),
     sitemapBody(changedEntries(1, { url: `${EXPECTED_SITEMAP_URLS[1]}/changed` })),

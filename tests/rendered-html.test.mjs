@@ -32,6 +32,7 @@ test("server-renders the WebTaskKit home page", async () => {
   assert.match(html, /WebTaskKit/);
   assert.match(html, /A practical toolkit/);
   assert.match(html, /QR Code Generator/);
+  assert.match(html, /Image to PDF Converter/);
   assert.match(html, /https:\/\/webtaskkit\.com\/webtaskkit-og\.png/);
   assert.match(html, /https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js/);
   assert.match(html, /data-cf-beacon="[^"]*a23077944fb94f7dacc69f53f208f2e9/);
@@ -67,7 +68,8 @@ test("tool pages explain real workflows, boundaries and contextual next steps", 
     ["/generators/qr-code/", "Printed menus and instructions", "A static QR code cannot be redirected", "/editors/text"],
     ["/generators/barcode/", "Internal stock labels", "does not issue, license or register", "/editors/svg"],
     ["/generators/tone/", "Compare a musical pitch", "does not measure acoustic output", "/converters/txt-to-pdf"],
-    ["/converters/txt-to-pdf/", "Meeting notes and handoffs", "Markdown symbols are treated as ordinary text", "/editors/text"],
+    ["/converters/txt-to-pdf/", "Meeting notes and handoffs", "Markdown symbols are treated as ordinary text", "/converters/image-to-pdf"],
+    ["/converters/image-to-pdf/", "Scan a signed packet", "Only still JPEG and PNG files are accepted", "/converters/txt-to-pdf"],
     ["/editors/svg/", "Repair scaling behavior", "not a substitute for your application", "/generators/barcode"],
     ["/editors/text/", "Clean copied notes", "Nothing is autosaved", "/converters/txt-to-pdf"],
   ];
@@ -86,7 +88,7 @@ test("tool pages explain real workflows, boundaries and contextual next steps", 
 test("category hubs provide selection guidance and cross-category workflows", async () => {
   const expectations = [
     ["/generators/", "Choose a generator by what must read the result", "Define the receiver", "/editors"],
-    ["/converters/", "Know when TXT to PDF is the right fit", "Inspect before sending", "/editors/text"],
+    ["/converters/", "Choose the right path into PDF", "Inspect before sending", "/converters/image-to-pdf"],
     ["/editors/", "Choose the editor that understands the source", "Keep an original", "/converters/txt-to-pdf"],
   ];
 
@@ -106,6 +108,7 @@ test("sitemap always uses the production origin", async () => {
   assert.equal(response.status, 200);
   const xml = await response.text();
   assert.match(xml, /https:\/\/webtaskkit\.com\/generators\/qr-code/);
+  assert.match(xml, /https:\/\/webtaskkit\.com\/converters\/image-to-pdf/);
   assert.doesNotMatch(xml, /webtaskkit\.test/);
 });
 
@@ -144,6 +147,7 @@ test("event endpoint accepts only allowlisted names and canonical tool paths", a
     "/generators/barcode",
     "/generators/tone",
     "/converters/txt-to-pdf",
+    "/converters/image-to-pdf",
     "/editors/svg",
     "/editors/text",
   ];
@@ -211,7 +215,7 @@ test("event endpoint does not collect through GET or OPTIONS", async () => {
   assert.equal(optionsResponse.headers.get("access-control-allow-origin"), null);
 });
 
-test("all six tools use the minimal best-effort first-party event client", async () => {
+test("all seven tools use the minimal best-effort first-party event client", async () => {
   const eventClient = await readFile(new URL("../lib/useToolEvents.ts", import.meta.url), "utf8");
   assert.match(eventClient, /fetch\("\/__events"/);
   assert.match(eventClient, /credentials:\s*"omit"/);
@@ -225,6 +229,7 @@ test("all six tools use the minimal best-effort first-party event client", async
     ["../components/tools/BarcodeTool.tsx", "/generators/barcode"],
     ["../components/tools/ToneGeneratorTool.tsx", "/generators/tone"],
     ["../components/tools/TxtToPdfTool.tsx", "/converters/txt-to-pdf"],
+    ["../components/tools/ImageToPdfTool.tsx", "/converters/image-to-pdf"],
     ["../components/tools/SvgEditorTool.tsx", "/editors/svg"],
     ["../components/tools/TextEditorTool.tsx", "/editors/text"],
   ];
@@ -237,4 +242,17 @@ test("all six tools use the minimal best-effort first-party event client", async
     assert.match(source, /trackOutput\(\)/, file);
     assert.match(source, /trackValidationError\(\)/, file);
   }
+});
+
+test("production privacy logging maps the image converter only to its canonical path", async () => {
+  const source = await readFile(new URL("../deploy/nginx/webtaskkit-https.conf", import.meta.url), "utf8");
+  const accessMap = /map \$uri \$webtaskkit_access_path \{([\s\S]*?)\n\}/.exec(source)?.[1] ?? "";
+  const eventMap = /map \$upstream_http_x_event_path \$webtaskkit_event_path \{([\s\S]*?)\n\}/.exec(source)?.[1] ?? "";
+  const loggableMap = /map "\$status\|\$webtaskkit_event_name\|\$webtaskkit_event_path" \$webtaskkit_event_loggable \{([\s\S]*?)\n\}/.exec(source)?.[1] ?? "";
+
+  for (const map of [accessMap, eventMap]) {
+    assert.match(map, /^\s*\/converters\/image-to-pdf \/converters\/image-to-pdf;\s*$/m);
+    assert.doesNotMatch(map, /image-to-pdf[?#]/);
+  }
+  assert.match(loggableMap, /converters\/\(txt-to-pdf\|image-to-pdf\)/);
 });

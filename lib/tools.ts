@@ -43,6 +43,16 @@ export const tools: ToolDefinition[] = [
     accent: "blue",
   },
   {
+    slug: "image-to-pdf",
+    name: "Image to PDF Converter",
+    shortName: "Image to PDF",
+    category: "Converters",
+    description: "Combine JPG and PNG images into one ordered PDF privately in your browser.",
+    href: "/converters/image-to-pdf",
+    symbol: "IMG",
+    accent: "blue",
+  },
+  {
     slug: "svg",
     name: "SVG Editor",
     shortName: "SVG editor",

@@ -3,7 +3,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 import "./globals.css";
 
-const description = "Free browser tools for QR codes, barcodes, TXT-to-PDF, SVG and text editing, and tone generation. No signup; your files stay on your device.";
+const description = "Free browser tools for QR codes, barcodes, text and image-to-PDF conversion, SVG and text editing, and tone generation. No signup; your files stay on your device.";
 const siteUrl = "https://webtaskkit.com";
 const socialImage = `${siteUrl}/webtaskkit-og.png`;
 
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: { default: "WebTaskKit - Fast, Private Online Tools", template: "%s | WebTaskKit" },
   description,
   applicationName: "WebTaskKit",
-  keywords: ["online tools", "browser tools", "QR code generator", "barcode generator", "TXT to PDF"],
+  keywords: ["online tools", "browser tools", "QR code generator", "barcode generator", "TXT to PDF", "image to PDF"],
   authors: [{ name: "WebTaskKit" }],
   creator: "WebTaskKit",
   robots: { index: true, follow: true },
