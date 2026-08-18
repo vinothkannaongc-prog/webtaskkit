@@ -44,9 +44,10 @@ function sitemapBody(entries = EXPECTED_SITEMAP_ENTRIES) {
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-    ...entries.map(({ url, changeFrequency, priority }) => [
+    ...entries.map(({ url, changeFrequency, priority, lastModified }) => [
       "<url>",
       `<loc>${url}</loc>`,
+      ...(lastModified ? [`<lastmod>${lastModified}</lastmod>`] : []),
       `<changefreq>${changeFrequency}</changefreq>`,
       `<priority>${priority}</priority>`,
       "</url>",
@@ -177,8 +178,8 @@ test("builds aggregate-only evidence for the fixed WebTaskKit contract", async (
   assert.deepEqual(report.robots, { valid: true });
   assert.deepEqual(report.sitemap, {
     valid: true,
-    canonical_urls: 14,
-    expected_canonical_urls: 14,
+    canonical_urls: 16,
+    expected_canonical_urls: 16,
   });
   assert.deepEqual(report.failure_codes, []);
   assert.equal(publicSiteHealthExitCode(report), 0);
@@ -256,12 +257,13 @@ test("validates the exact public robots policy with standard comments and CR-onl
 test("requires the exact ordered sitemap serializer contract", () => {
   assert.equal(validateSitemap(sitemapBody()), EXPECTED_SITEMAP_URLS.length);
   assert.deepEqual(EXPECTED_SITEMAP_ENTRIES, [
-    { url: "https://webtaskkit.com/", changeFrequency: "weekly", priority: "1" },
+    { url: "https://webtaskkit.com/", changeFrequency: "weekly", priority: "1", lastModified: "2026-08-18T21:35:16.000Z" },
     { url: "https://webtaskkit.com/generators", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/converters", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/editors", changeFrequency: "monthly", priority: "0.8" },
-    { url: "https://webtaskkit.com/about", changeFrequency: "monthly", priority: "0.3" },
-    { url: "https://webtaskkit.com/privacy", changeFrequency: "monthly", priority: "0.3" },
+    { url: "https://webtaskkit.com/seo-tools", changeFrequency: "monthly", priority: "0.8", lastModified: "2026-08-18T21:35:16.000Z" },
+    { url: "https://webtaskkit.com/about", changeFrequency: "monthly", priority: "0.3", lastModified: "2026-08-18T21:35:16.000Z" },
+    { url: "https://webtaskkit.com/privacy", changeFrequency: "monthly", priority: "0.3", lastModified: "2026-08-18T21:35:16.000Z" },
     { url: "https://webtaskkit.com/generators/qr-code", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/generators/barcode", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/converters/txt-to-pdf", changeFrequency: "monthly", priority: "0.8" },
@@ -270,6 +272,7 @@ test("requires the exact ordered sitemap serializer contract", () => {
     { url: "https://webtaskkit.com/editors/svg", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/editors/text", changeFrequency: "monthly", priority: "0.8" },
     { url: "https://webtaskkit.com/generators/tone", changeFrequency: "monthly", priority: "0.8" },
+    { url: "https://webtaskkit.com/seo-tools/on-page-seo-audit", changeFrequency: "monthly", priority: "0.8", lastModified: "2026-08-18T21:35:16.000Z" },
   ]);
 });
 
@@ -282,6 +285,7 @@ test("rejects hostile extensions, foreign markup, reordering, and lexical sitema
   const firstBlock = [
     "<url>",
     "<loc>https://webtaskkit.com/</loc>",
+    "<lastmod>2026-08-18T21:35:16.000Z</lastmod>",
     "<changefreq>weekly</changefreq>",
     "<priority>1</priority>",
     "</url>",
@@ -303,7 +307,7 @@ test("rejects hostile extensions, foreign markup, reordering, and lexical sitema
     sitemapBody(reordered),
     sitemapBody().replace(
       firstBlock,
-      "<url><changefreq>weekly</changefreq><loc>https://webtaskkit.com/</loc><priority>1</priority></url>",
+      "<url><changefreq>weekly</changefreq><loc>https://webtaskkit.com/</loc><lastmod>2026-08-18T21:35:16.000Z</lastmod><priority>1</priority></url>",
     ),
     sitemapBody().replace("<priority>0.8</priority>", "<priority>0.80</priority>"),
     sitemapBody().replace("<changefreq>monthly</changefreq>", "<changefreq>Monthly</changefreq>"),

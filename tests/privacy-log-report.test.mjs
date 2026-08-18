@@ -176,11 +176,15 @@ test("returns a zero-safe aggregate for empty logs", async (t) => {
   }
 });
 
-test("accepts both PDF converters only as exact access and event paths", async (t) => {
+test("accepts PDF converters and the SEO audit only as exact access and event paths", async (t) => {
   const directory = await fixtureDirectory(t);
   const accessFile = join(directory, "access.jsonl");
   const eventFile = join(directory, "events.jsonl");
-  const paths = ["/converters/image-to-pdf", "/converters/pdf-to-jpg"];
+  const paths = [
+    "/converters/image-to-pdf",
+    "/converters/pdf-to-jpg",
+    "/seo-tools/on-page-seo-audit",
+  ];
   await writeJsonl(accessFile, paths.map((path) => access({ path })));
   await writeJsonl(eventFile, [
     ...paths.map((path) => event({ path })),

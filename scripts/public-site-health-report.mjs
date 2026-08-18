@@ -13,12 +13,13 @@ const MINIMUM_TLS_DAYS = 21;
 const DAY_MS = 24 * 60 * 60 * 1_000;
 
 export const EXPECTED_SITEMAP_ENTRIES = Object.freeze([
-  ["/", "weekly", "1"],
+  ["/", "weekly", "1", "2026-08-18T21:35:16.000Z"],
   ["/generators", "monthly", "0.8"],
   ["/converters", "monthly", "0.8"],
   ["/editors", "monthly", "0.8"],
-  ["/about", "monthly", "0.3"],
-  ["/privacy", "monthly", "0.3"],
+  ["/seo-tools", "monthly", "0.8", "2026-08-18T21:35:16.000Z"],
+  ["/about", "monthly", "0.3", "2026-08-18T21:35:16.000Z"],
+  ["/privacy", "monthly", "0.3", "2026-08-18T21:35:16.000Z"],
   ["/generators/qr-code", "monthly", "0.8"],
   ["/generators/barcode", "monthly", "0.8"],
   ["/converters/txt-to-pdf", "monthly", "0.8"],
@@ -27,10 +28,12 @@ export const EXPECTED_SITEMAP_ENTRIES = Object.freeze([
   ["/editors/svg", "monthly", "0.8"],
   ["/editors/text", "monthly", "0.8"],
   ["/generators/tone", "monthly", "0.8"],
-].map(([path, changeFrequency, priority]) => Object.freeze({
+  ["/seo-tools/on-page-seo-audit", "monthly", "0.8", "2026-08-18T21:35:16.000Z"],
+].map(([path, changeFrequency, priority, lastModified]) => Object.freeze({
   url: `${CANONICAL_ORIGIN}${path}`,
   changeFrequency,
   priority,
+  ...(lastModified ? { lastModified } : {}),
 })));
 
 export const EXPECTED_SITEMAP_URLS = Object.freeze(
@@ -188,9 +191,10 @@ export function validateSitemap(body) {
   }
 
   const whitespace = "[\\u0009\\u000A\\u000D\\u0020]*";
-  const entries = EXPECTED_SITEMAP_ENTRIES.map(({ url, changeFrequency, priority }) => [
+  const entries = EXPECTED_SITEMAP_ENTRIES.map(({ url, changeFrequency, priority, lastModified }) => [
     `<url>${whitespace}`,
     `<loc>${escapeRegExp(url)}</loc>${whitespace}`,
+    ...(lastModified ? [`<lastmod>${escapeRegExp(lastModified)}</lastmod>${whitespace}`] : []),
     `<changefreq>${changeFrequency}</changefreq>${whitespace}`,
     `<priority>${escapeRegExp(priority)}</priority>${whitespace}`,
     `</url>${whitespace}`,

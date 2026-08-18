@@ -1,4 +1,4 @@
-export type ToolCategory = "Generators" | "Converters" | "Editors";
+export type ToolCategory = "Generators" | "Converters" | "Editors" | "SEO Tools";
 
 export type ToolDefinition = {
   slug: string;
@@ -92,13 +92,28 @@ export const tools: ToolDefinition[] = [
     symbol: "Hz",
     accent: "amber",
   },
+  {
+    slug: "on-page-seo-audit",
+    name: "On-Page SEO Audit",
+    shortName: "SEO audit",
+    category: "SEO Tools",
+    description: "Check public HTML, search metadata, headings, Open Graph and card tags with a guarded server fetch.",
+    href: "/seo-tools/on-page-seo-audit",
+    symbol: "SEO",
+    accent: "amber",
+  },
 ];
 
 export const categoryLinks = [
   { name: "Generators", href: "/generators", description: "Create codes, labels and sound." },
   { name: "Converters", href: "/converters", description: "Turn one useful format into another." },
   { name: "Editors", href: "/editors", description: "Make clean changes directly in your browser." },
+  { name: "SEO Tools", href: "/seo-tools", description: "Inspect public pages and search metadata safely." },
 ];
+
+export function categoryPath(category: ToolCategory) {
+  return category === "SEO Tools" ? "/seo-tools" : `/${category.toLowerCase()}`;
+}
 
 export function toolsForCategory(category: ToolCategory) {
   return tools.filter((tool) => tool.category === category);

@@ -1,5 +1,5 @@
 import { ToolCard } from "@/components/ToolCard";
-import { toolsForCategory, type ToolCategory } from "@/lib/tools";
+import { categoryPath, toolsForCategory, type ToolCategory } from "@/lib/tools";
 
 const siteUrl = "https://webtaskkit.com";
 
@@ -78,12 +78,33 @@ const copy: Record<ToolCategory, CategoryCopy> = {
       { href: "/converters/txt-to-pdf", label: "Publish clean text as PDF", text: "Turn the final plain-text version into a paginated local download." },
     ],
   },
+  "SEO Tools": {
+    lead: "Inspect the search and sharing signals in a public page's initial HTML.",
+    body: "Start with one canonical page and review what a server receives before relying on a browser-only preview. The guarded audit combines title, description, canonical, robots, headings, image-alt, JSON-LD syntax, Open Graph and card checks without turning WebTaskKit into an unrestricted proxy.",
+    choiceTitle: "Review one page from fetch to social preview",
+    choices: [
+      { href: "/seo-tools/on-page-seo-audit", title: "Check search essentials", text: "Inspect the response, title, description, canonical and indexing directive in the initial public HTML." },
+      { href: "/seo-tools/on-page-seo-audit", title: "Review sharing metadata", text: "Check the required Open Graph basics plus explicit card title, description and image fields." },
+      { href: "/seo-tools/on-page-seo-audit", title: "Understand the fetch boundary", text: "See what the audit blocks, which limits protect the server and what remains outside this report." },
+    ],
+    workflow: [
+      { title: "Audit the preferred public URL", text: "Use the same canonical HTTPS address that visitors and search engines should reach, never a private or signed URL." },
+      { title: "Fix definite issues first", text: "Start with missing titles, descriptions, canonicals or primary headings before refining optional preview metadata." },
+      { title: "Verify in specialist tools", text: "Use Search Console, schema validators and each social platform's preview debugger for platform-specific eligibility." },
+    ],
+    boundaryTitle: "A bounded HTML review, not a crawler",
+    boundary: "The audit fetches one public page, follows at most three validated redirects and reads no more than 512 KiB of uncompressed HTML. It does not execute page JavaScript, crawl links, test Core Web Vitals, validate rich-result eligibility or promise indexing and rankings.",
+    related: [
+      { href: "/editors/text", label: "Draft clearer metadata", text: "Prepare concise title, description and heading alternatives in the local text editor." },
+      { href: "/generators/qr-code", label: "Test a public landing page", text: "After reviewing a public URL, create a QR code and test the final mobile destination." },
+    ],
+  },
 };
 
 export function CategoryPage({ category }: { category: ToolCategory }) {
   const categoryTools = toolsForCategory(category);
   const categoryCopy = copy[category];
-  const categoryUrl = `${siteUrl}/${category.toLowerCase()}`;
+  const categoryUrl = `${siteUrl}${categoryPath(category)}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [

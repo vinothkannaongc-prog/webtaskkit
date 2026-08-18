@@ -14,6 +14,7 @@ export const TOOL_EVENT_PATHS = [
   "/converters/pdf-to-jpg",
   "/editors/svg",
   "/editors/text",
+  "/seo-tools/on-page-seo-audit",
 ] as const;
 
 export type ToolEventName = (typeof TOOL_EVENT_NAMES)[number];

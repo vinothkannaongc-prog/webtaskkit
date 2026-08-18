@@ -19,15 +19,24 @@ public ingress and proxies `webtaskkit.com` to port 3000 inside that network.
 1. Extract the tracked source into a new immutable release directory.
 2. Build the Docker image from that directory. The lockfile is mandatory.
 3. Start a temporary container and verify `/` before replacing production.
-4. Replace only `webtaskkit_app`, then wait for its Docker health check.
-5. Test Nginx with `docker exec offshorefocus_nginx nginx -t` before a graceful
-   `nginx -s reload`.
-6. Verify the apex, `www` redirect, robots, sitemap, all eight tool routes, and
+4. Back up the active WebTaskKit Nginx include, install the candidate include,
+   test it with `docker exec offshorefocus_nginx nginx -t`, then reload Nginx
+   gracefully. At this point the old application safely returns 404 from the
+   newly protected exact audit location.
+5. Replace only `webtaskkit_app`, then wait for its Docker health check.
+6. Verify the apex, `www` redirect, robots, sitemap, all nine tool routes, and
    the versioned `/pdfjs/6.2.108/` worker, CMap, standard-font and WASM assets.
 
 The application has no database, uploaded files, runtime secrets, or writable
 state. Rollback is therefore a container replacement using the prior tagged
-image.
+image. Keep the backed-up Nginx include until public verification completes;
+on a verified release failure, restore and syntax-check that include before a
+graceful reload, then restore the prior application image if it was replaced.
+
+The SEO audit endpoint is limited to two concurrent upstream requests in the
+Nginx include, in addition to its per-client and global request rates. This
+keeps aggregate parser memory bounded; preserve and syntax-check the
+`webtaskkit_audit_concurrency` zone when promoting the include.
 
 ## Privacy-minimized measurement logs
 
@@ -115,7 +124,7 @@ immediately after the certificate expiry and negotiated protocol are captured.
 The homepage must retain the exact WebTaskKit title, application identity and
 one canonical link to `https://webtaskkit.com`. The robots policy must continue
 to allow public crawling and name the exact canonical sitemap. The sitemap must
-match the current application serializer exactly: all 14 HTTPS URLs in order,
+match the current application serializer exactly: all 16 HTTPS URLs in order,
 with their current `changefreq` and lexical `priority` values. Invalid XML
 characters, comments, CDATA, DTDs, entities, extensions, foreign or unknown
 elements, reordered fields and URL query strings or fragments fail closed.

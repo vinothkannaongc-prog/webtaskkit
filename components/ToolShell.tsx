@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import { ToolCard } from "./ToolCard";
-import { tools, type ToolDefinition } from "@/lib/tools";
+import { categoryPath, tools, type ToolDefinition } from "@/lib/tools";
 
 type FAQ = { question: string; answer: string };
 type PracticalExample = { title: string; text: string };
 type DecisionPoint = { title: string; text: string };
 type WorkflowLink = { href: string; label: string; text: string };
+type ReferenceLink = { href: string; label: string; text: string };
 
 type ToolShellProps = {
   tool: ToolDefinition;
@@ -18,6 +19,8 @@ type ToolShellProps = {
   decisionGuide: DecisionPoint[];
   limitations: string[];
   workflowLinks: WorkflowLink[];
+  references?: ReferenceLink[];
+  referenceNote?: string;
   privacyNote?: string;
 };
 
@@ -32,6 +35,7 @@ const relatedToolSlugs: Record<string, string[]> = {
   svg: ["text", "qr-code", "barcode"],
   text: ["svg", "txt-to-pdf", "qr-code"],
   tone: ["qr-code", "barcode", "text"],
+  "on-page-seo-audit": ["text", "svg", "qr-code"],
 };
 
 export function ToolShell({
@@ -45,13 +49,16 @@ export function ToolShell({
   decisionGuide,
   limitations,
   workflowLinks,
+  references = [],
+  referenceNote,
   privacyNote = "This tool runs locally in your browser. Your input is not uploaded to WebTaskKit.",
 }: ToolShellProps) {
   const related = (relatedToolSlugs[tool.slug] ?? [])
     .map((slug) => tools.find((item) => item.slug === slug))
     .filter((item): item is ToolDefinition => Boolean(item));
   const toolUrl = `${siteUrl}${tool.href}`;
-  const categoryUrl = `${siteUrl}/${tool.category.toLowerCase()}`;
+  const categoryHref = categoryPath(tool.category);
+  const categoryUrl = `${siteUrl}${categoryHref}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@graph": [
@@ -91,7 +98,7 @@ export function ToolShell({
       <section className="tool-hero section-wrap">
         <div className="breadcrumbs" aria-label="Breadcrumb">
           <a href="/">Home</a><span aria-hidden="true">/</span>
-          <a href={`/${tool.category.toLowerCase()}`}>{tool.category}</a><span aria-hidden="true">/</span>
+          <a href={categoryHref}>{tool.category}</a><span aria-hidden="true">/</span>
           <span>{tool.shortName}</span>
         </div>
         <div className="tool-title-row">
@@ -179,6 +186,24 @@ export function ToolShell({
             ))}
           </div>
         </div>
+
+        {references.length ? (
+          <div className="reference-panel" id="source-guidance">
+            <div>
+              <p className="eyebrow">Primary guidance</p>
+              <h2>What the checks are based on</h2>
+              {referenceNote ? <p>{referenceNote}</p> : null}
+            </div>
+            <nav className="reference-link-list" aria-label="Primary technical references">
+              {references.map((reference) => (
+                <a key={reference.href} href={reference.href} target="_blank" rel="noopener noreferrer">
+                  <strong>{reference.label}<span aria-hidden="true"> ↗</span></strong>
+                  <span>{reference.text}</span>
+                </a>
+              ))}
+            </nav>
+          </div>
+        ) : null}
       </section>
 
       <section className="faq-section section-wrap">

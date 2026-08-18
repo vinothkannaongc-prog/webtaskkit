@@ -34,6 +34,7 @@ test("server-renders the WebTaskKit home page", async () => {
   assert.match(html, /QR Code Generator/);
   assert.match(html, /Image to PDF Converter/);
   assert.match(html, /PDF to JPG Converter/);
+  assert.match(html, /On-Page SEO Audit/);
   assert.match(html, /https:\/\/webtaskkit\.com\/webtaskkit-og\.png/);
   assert.match(html, /https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js/);
   assert.match(html, /data-cf-beacon="[^"]*a23077944fb94f7dacc69f53f208f2e9/);
@@ -64,6 +65,21 @@ test("server-renders category hubs with index and breadcrumb data", async () => 
   assert.match(html, /https:\/\/webtaskkit\.com\/generators\/tone/);
 });
 
+test("server-renders the SEO audit with guarded-fetch copy, sources, and route metadata", async () => {
+  const response = await render("/seo-tools/on-page-seo-audit/");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /On-Page SEO Audit and Meta Tag Checker/);
+  assert.match(html, /does not store the submitted URL or page body/i);
+  assert.match(html, /512 KiB uncompressed body limit/);
+  assert.match(html, /OWASP SSRF prevention/);
+  assert.match(html, /Google title-link guidance/);
+  assert.match(html, /https:\/\/webtaskkit\.com\/seo-tools\/on-page-seo-audit/);
+  assert.match(html, /FAQPage/);
+  assert.match(html, /BreadcrumbList/);
+  assert.doesNotMatch(html, /webtaskkit-og\.png/);
+});
+
 test("tool pages explain real workflows, boundaries and contextual next steps", async () => {
   const expectations = [
     ["/generators/qr-code/", "Printed menus and instructions", "A static QR code cannot be redirected", "/editors/text"],
@@ -74,6 +90,7 @@ test("tool pages explain real workflows, boundaries and contextual next steps", 
     ["/converters/pdf-to-jpg/", "Share one slide as an image", "Interactive form fields", "/converters/image-to-pdf"],
     ["/editors/svg/", "Repair scaling behavior", "not a substitute for your application", "/generators/barcode"],
     ["/editors/text/", "Clean copied notes", "Nothing is autosaved", "/converters/txt-to-pdf"],
+    ["/seo-tools/on-page-seo-audit/", "Review a page before publishing", "does not execute client JavaScript", "/editors/text"],
   ];
 
   for (const [path, example, limitation, linkedPath] of expectations) {
@@ -92,6 +109,7 @@ test("category hubs provide selection guidance and cross-category workflows", as
     ["/generators/", "Choose a generator by what must read the result", "Define the receiver", "/editors"],
     ["/converters/", "Choose the right path into PDF", "Inspect before sending", "/converters/image-to-pdf"],
     ["/editors/", "Choose the editor that understands the source", "Keep an original", "/converters/txt-to-pdf"],
+    ["/seo-tools/", "Review one page from fetch to social preview", "Audit the preferred public URL", "/seo-tools/on-page-seo-audit"],
   ];
 
   for (const [path, guidance, workflow, linkedPath] of expectations) {
@@ -112,6 +130,8 @@ test("sitemap always uses the production origin", async () => {
   assert.match(xml, /https:\/\/webtaskkit\.com\/generators\/qr-code/);
   assert.match(xml, /https:\/\/webtaskkit\.com\/converters\/image-to-pdf/);
   assert.match(xml, /https:\/\/webtaskkit\.com\/converters\/pdf-to-jpg/);
+  assert.match(xml, /https:\/\/webtaskkit\.com\/seo-tools\/on-page-seo-audit/);
+  assert.equal((xml.match(/<lastmod>2026-08-18T21:35:16\.000Z<\/lastmod>/g) ?? []).length, 5);
   assert.doesNotMatch(xml, /webtaskkit\.test/);
 });
 
@@ -120,7 +140,9 @@ test("server-renders the privacy page", async () => {
   assert.equal(response.status, 200);
   const html = await response.text();
   assert.match(html, /Privacy at WebTaskKit/);
-  assert.match(html, /Tool inputs/);
+  assert.match(html, /Local tool inputs/);
+  assert.match(html, /Public-page SEO audit/);
+  assert.match(html, /Do not submit private dashboards, signed download links or URLs containing access tokens/);
   assert.match(html, /Cloudflare Web Analytics/);
   assert.match(html, /does not use cookies/i);
   assert.match(html, /Tool usage events/);
@@ -154,6 +176,7 @@ test("event endpoint accepts only allowlisted names and canonical tool paths", a
     "/converters/pdf-to-jpg",
     "/editors/svg",
     "/editors/text",
+    "/seo-tools/on-page-seo-audit",
   ];
 
   for (const event of eventNames) {
@@ -219,7 +242,7 @@ test("event endpoint does not collect through GET or OPTIONS", async () => {
   assert.equal(optionsResponse.headers.get("access-control-allow-origin"), null);
 });
 
-test("all eight tools use the minimal best-effort first-party event client", async () => {
+test("all nine tools use the minimal best-effort first-party event client", async () => {
   const eventClient = await readFile(new URL("../lib/useToolEvents.ts", import.meta.url), "utf8");
   assert.match(eventClient, /fetch\("\/__events"/);
   assert.match(eventClient, /credentials:\s*"omit"/);
@@ -237,19 +260,24 @@ test("all eight tools use the minimal best-effort first-party event client", asy
     ["../components/tools/PdfToImageTool.tsx", "/converters/pdf-to-jpg"],
     ["../components/tools/SvgEditorTool.tsx", "/editors/svg"],
     ["../components/tools/TextEditorTool.tsx", "/editors/text"],
+    ["../components/tools/SeoAuditTool.tsx", "/seo-tools/on-page-seo-audit"],
   ];
 
   for (const [file, path] of integrations) {
     const source = await readFile(new URL(file, import.meta.url), "utf8");
-    assert.match(source, new RegExp(`useToolEvents\\("${path}"\\)`), file);
+    assert.match(source, new RegExp(path.replaceAll("/", "\\/")), file);
+    assert.match(source, /useToolEvents\(/, file);
     assert.match(source, /trackStart\(\)/, file);
     assert.match(source, /trackComplete\(\)/, file);
     assert.match(source, /trackOutput\(\)/, file);
     assert.match(source, /trackValidationError\(\)/, file);
   }
+  const seoAuditSource = await readFile(new URL("../components/tools/SeoAuditTool.tsx", import.meta.url), "utf8");
+  assert.match(seoAuditSource, /STATUS_LABELS\[check\.status\]/);
+  assert.match(seoAuditSource, /className="sr-only"/);
 });
 
-test("production privacy logging maps both file converters only to canonical paths", async () => {
+test("production privacy logging maps converters and SEO audit only to canonical paths", async () => {
   const source = await readFile(new URL("../deploy/nginx/webtaskkit-https.conf", import.meta.url), "utf8");
   const accessMap = /map \$uri \$webtaskkit_access_path \{([\s\S]*?)\n\}/.exec(source)?.[1] ?? "";
   const eventMap = /map \$upstream_http_x_event_path \$webtaskkit_event_path \{([\s\S]*?)\n\}/.exec(source)?.[1] ?? "";
@@ -261,7 +289,13 @@ test("production privacy logging maps both file converters only to canonical pat
     assert.doesNotMatch(map, /image-to-pdf[?#]/);
     assert.doesNotMatch(map, /pdf-to-jpg[?#]/);
   }
+  assert.match(accessMap, /^\s*\/api\/seo-audit \/api\/seo-audit;\s*$/m);
+  for (const map of [accessMap, eventMap]) {
+    assert.match(map, /^\s*\/seo-tools\/on-page-seo-audit \/seo-tools\/on-page-seo-audit;\s*$/m);
+    assert.doesNotMatch(map, /on-page-seo-audit[?#]/);
+  }
   assert.match(loggableMap, /converters\/\(txt-to-pdf\|image-to-pdf\|pdf-to-jpg\)/);
+  assert.match(loggableMap, /seo-tools\/on-page-seo-audit/);
 });
 
 test("the PDF converter bundles its worker and decoder assets on the site origin", async () => {

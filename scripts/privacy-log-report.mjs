@@ -23,7 +23,8 @@ const ACCESS_PATHS = [
   "/", "/about", "/privacy", "/generators", "/generators/qr-code",
   "/generators/barcode", "/generators/tone", "/converters",
   "/converters/txt-to-pdf", "/converters/image-to-pdf", "/converters/pdf-to-jpg",
-  "/editors", "/editors/svg", "/editors/text",
+  "/editors", "/editors/svg", "/editors/text", "/seo-tools",
+  "/seo-tools/on-page-seo-audit", "/api/seo-audit",
   "/robots.txt", "/sitemap.xml", "/_other",
 ];
 const EVENT_NAMES = [
@@ -32,7 +33,7 @@ const EVENT_NAMES = [
 const EVENT_PATHS = [
   "/generators/qr-code", "/generators/barcode", "/generators/tone",
   "/converters/txt-to-pdf", "/converters/image-to-pdf", "/converters/pdf-to-jpg",
-  "/editors/svg", "/editors/text",
+  "/editors/svg", "/editors/text", "/seo-tools/on-page-seo-audit",
 ];
 const STATUS_CLASSES = ["1xx", "2xx", "3xx", "4xx", "5xx"];
 
