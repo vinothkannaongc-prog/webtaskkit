@@ -15,6 +15,7 @@ export const TOOL_EVENT_PATHS = [
   "/editors/svg",
   "/editors/text",
   "/seo-tools/on-page-seo-audit",
+  "/seo-tools/robots-sitemap-validator",
 ] as const;
 
 export type ToolEventName = (typeof TOOL_EVENT_NAMES)[number];

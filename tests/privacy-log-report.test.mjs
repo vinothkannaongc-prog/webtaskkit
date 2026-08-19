@@ -176,19 +176,25 @@ test("returns a zero-safe aggregate for empty logs", async (t) => {
   }
 });
 
-test("accepts PDF converters and the SEO audit only as exact access and event paths", async (t) => {
+test("accepts converters and public-document SEO tools only as exact access and event paths", async (t) => {
   const directory = await fixtureDirectory(t);
   const accessFile = join(directory, "access.jsonl");
   const eventFile = join(directory, "events.jsonl");
-  const paths = [
+  const eventPaths = [
     "/converters/image-to-pdf",
     "/converters/pdf-to-jpg",
     "/seo-tools/on-page-seo-audit",
+    "/seo-tools/robots-sitemap-validator",
   ];
-  await writeJsonl(accessFile, paths.map((path) => access({ path })));
+  const accessPaths = [
+    ...eventPaths,
+    "/api/seo-audit",
+    "/api/robots-sitemap-validator",
+  ];
+  await writeJsonl(accessFile, accessPaths.map((path) => access({ path })));
   await writeJsonl(eventFile, [
-    ...paths.map((path) => event({ path })),
-    ...paths.map((path) => event({ event: "tool_completed", path })),
+    ...eventPaths.map((path) => event({ path })),
+    ...eventPaths.map((path) => event({ event: "tool_completed", path })),
   ]);
 
   const report = await buildPrivacyLogReport({
@@ -197,8 +203,10 @@ test("accepts PDF converters and the SEO audit only as exact access and event pa
     since: SINCE,
     until: UNTIL,
   });
-  for (const path of paths) {
+  for (const path of accessPaths) {
     assert.equal(report.access.by_path[path], 1);
+  }
+  for (const path of eventPaths) {
     assert.equal(report.events.by_path[path].tool_started, 1);
     assert.equal(report.events.by_path[path].tool_completed, 1);
     assert.equal(

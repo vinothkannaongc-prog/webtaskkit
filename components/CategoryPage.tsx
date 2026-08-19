@@ -79,24 +79,24 @@ const copy: Record<ToolCategory, CategoryCopy> = {
     ],
   },
   "SEO Tools": {
-    lead: "Inspect the search and sharing signals in a public page's initial HTML.",
-    body: "Start with one canonical page and review what a server receives before relying on a browser-only preview. The guarded audit combines title, description, canonical, robots, headings, image-alt, JSON-LD syntax, Open Graph and card checks without turning WebTaskKit into an unrestricted proxy.",
-    choiceTitle: "Review one page from fetch to social preview",
+    lead: "Inspect a public page's search signals, then check the robots and sitemap documents that help crawlers discover it.",
+    body: "Use the on-page audit for one HTML response and the robots.txt checker or XML sitemap validator for one discovery document. Each explicit action makes one guarded fetch, reports observable findings and stops: there is no background crawl, automatic child-sitemap fetch or page-by-page request.",
+    choiceTitle: "Choose the SEO check that matches the document",
     choices: [
-      { href: "/seo-tools/on-page-seo-audit", title: "Check search essentials", text: "Inspect the response, title, description, canonical and indexing directive in the initial public HTML." },
-      { href: "/seo-tools/on-page-seo-audit", title: "Review sharing metadata", text: "Check the required Open Graph basics plus explicit card title, description and image fields." },
-      { href: "/seo-tools/on-page-seo-audit", title: "Understand the fetch boundary", text: "See what the audit blocks, which limits protect the server and what remains outside this report." },
+      { href: "/seo-tools/on-page-seo-audit", title: "Audit one public HTML page", text: "Inspect response status, title, description, canonical, headings, structured-data syntax and social metadata in the initial response." },
+      { href: "/seo-tools/robots-sitemap-validator", title: "Check a robots.txt file", text: "Review crawler groups, Allow and Disallow rules, Sitemap declarations and a test path without fetching the declared documents." },
+      { href: "/seo-tools/robots-sitemap-validator", title: "Validate an XML sitemap", text: "Check one sitemap or sitemap-index document for syntax, required URL fields, limits, duplicates, host consistency and date formatting." },
     ],
     workflow: [
-      { title: "Audit the preferred public URL", text: "Use the same canonical HTTPS address that visitors and search engines should reach, never a private or signed URL." },
-      { title: "Fix definite issues first", text: "Start with missing titles, descriptions, canonicals or primary headings before refining optional preview metadata." },
-      { title: "Verify in specialist tools", text: "Use Search Console, schema validators and each social platform's preview debugger for platform-specific eligibility." },
+      { title: "Check discovery controls", text: "Validate the site's public robots.txt file and each important sitemap as separate, explicit checks. A declaration is not proof that the target was fetched or indexed." },
+      { title: "Audit the preferred page", text: "Inspect the canonical public HTML URL, then fix definite metadata and structure issues before optional sharing refinements." },
+      { title: "Verify with the search engine", text: "Use Search Console or Bing Webmaster Tools for live crawl, sitemap and indexation evidence; use schema and social preview tools for their specialist checks." },
     ],
-    boundaryTitle: "A bounded HTML review, not a crawler",
-    boundary: "The audit fetches one public page, follows at most three validated redirects and reads no more than 512 KiB of uncompressed HTML. It does not execute page JavaScript, crawl links, test Core Web Vitals, validate rich-result eligibility or promise indexing and rankings.",
+    boundaryTitle: "Document checks, not a site crawler",
+    boundary: "Each tool reads one public document only after destination and redirect validation. The page audit does not execute JavaScript; the robots and sitemap tool does not automatically fetch declarations, child sitemaps or listed pages. Neither tool proves crawl behavior, indexing, search appearance or rankings.",
     related: [
-      { href: "/editors/text", label: "Draft clearer metadata", text: "Prepare concise title, description and heading alternatives in the local text editor." },
-      { href: "/generators/qr-code", label: "Test a public landing page", text: "After reviewing a public URL, create a QR code and test the final mobile destination." },
+      { href: "/seo-tools/on-page-seo-audit", label: "Move from discovery to page signals", text: "After validating crawl documents, inspect the initial HTML of one important canonical page." },
+      { href: "/seo-tools/robots-sitemap-validator", label: "Review crawl-discovery documents", text: "Check one public robots.txt file or XML sitemap and act on the reported document-level findings." },
     ],
   },
 };
@@ -153,7 +153,7 @@ export function CategoryPage({ category }: { category: ToolCategory }) {
         </div>
         <div className="category-choice-grid">
           {categoryCopy.choices.map((choice) => (
-            <a key={choice.href} href={choice.href} className="category-choice-card">
+            <a key={`${choice.href}-${choice.title}`} href={choice.href} className="category-choice-card">
               <h3>{choice.title}<span aria-hidden="true"> &rarr;</span></h3>
               <p>{choice.text}</p>
             </a>

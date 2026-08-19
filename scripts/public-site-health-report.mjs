@@ -13,13 +13,13 @@ const MINIMUM_TLS_DAYS = 21;
 const DAY_MS = 24 * 60 * 60 * 1_000;
 
 export const EXPECTED_SITEMAP_ENTRIES = Object.freeze([
-  ["/", "weekly", "1", "2026-08-18T21:35:16.000Z"],
+  ["/", "weekly", "1", "2026-08-19T03:13:47.894Z"],
   ["/generators", "monthly", "0.8"],
   ["/converters", "monthly", "0.8"],
   ["/editors", "monthly", "0.8"],
-  ["/seo-tools", "monthly", "0.8", "2026-08-18T21:35:16.000Z"],
-  ["/about", "monthly", "0.3", "2026-08-18T21:35:16.000Z"],
-  ["/privacy", "monthly", "0.3", "2026-08-18T21:35:16.000Z"],
+  ["/seo-tools", "monthly", "0.8", "2026-08-19T03:13:47.894Z"],
+  ["/about", "monthly", "0.3", "2026-08-19T03:13:47.894Z"],
+  ["/privacy", "monthly", "0.3", "2026-08-19T03:13:47.894Z"],
   ["/generators/qr-code", "monthly", "0.8"],
   ["/generators/barcode", "monthly", "0.8"],
   ["/converters/txt-to-pdf", "monthly", "0.8"],
@@ -28,7 +28,8 @@ export const EXPECTED_SITEMAP_ENTRIES = Object.freeze([
   ["/editors/svg", "monthly", "0.8"],
   ["/editors/text", "monthly", "0.8"],
   ["/generators/tone", "monthly", "0.8"],
-  ["/seo-tools/on-page-seo-audit", "monthly", "0.8", "2026-08-18T21:35:16.000Z"],
+  ["/seo-tools/on-page-seo-audit", "monthly", "0.8", "2026-08-19T03:13:47.894Z"],
+  ["/seo-tools/robots-sitemap-validator", "monthly", "0.8", "2026-08-19T03:13:47.894Z"],
 ].map(([path, changeFrequency, priority, lastModified]) => Object.freeze({
   url: `${CANONICAL_ORIGIN}${path}`,
   changeFrequency,

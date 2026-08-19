@@ -102,13 +102,23 @@ export const tools: ToolDefinition[] = [
     symbol: "SEO",
     accent: "amber",
   },
+  {
+    slug: "robots-sitemap-validator",
+    name: "Robots.txt & Sitemap Validator",
+    shortName: "Robots & sitemap",
+    category: "SEO Tools",
+    description: "Check one public robots.txt file or XML sitemap per action with a guarded server fetch.",
+    href: "/seo-tools/robots-sitemap-validator",
+    symbol: "BOT",
+    accent: "amber",
+  },
 ];
 
 export const categoryLinks = [
   { name: "Generators", href: "/generators", description: "Create codes, labels and sound." },
   { name: "Converters", href: "/converters", description: "Turn one useful format into another." },
   { name: "Editors", href: "/editors", description: "Make clean changes directly in your browser." },
-  { name: "SEO Tools", href: "/seo-tools", description: "Inspect public pages and search metadata safely." },
+  { name: "SEO Tools", href: "/seo-tools", description: "Inspect public pages, robots files and XML sitemaps safely." },
 ];
 
 export function categoryPath(category: ToolCategory) {

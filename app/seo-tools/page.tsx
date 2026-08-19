@@ -3,7 +3,7 @@ import { CategoryPage } from "@/components/CategoryPage";
 
 export const metadata: Metadata = {
   title: "Free SEO Tools",
-  description: "Inspect public page metadata, structure and social sharing tags with guarded, explainable SEO checks.",
+  description: "Audit public page metadata and check one robots.txt or XML sitemap document with guarded, explainable SEO tools.",
   alternates: { canonical: "/seo-tools" },
 };
 

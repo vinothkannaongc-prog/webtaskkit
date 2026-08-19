@@ -1,8 +1,8 @@
 # WebTaskKit
 
-WebTaskKit is a fast, privacy-minded collection of web utilities. The site includes QR and barcode generators, local PDF conversion, SVG and plain-text editors, a Web Audio tone generator, and a guarded public-page SEO audit.
+WebTaskKit is a fast, privacy-minded collection of web utilities. The site includes QR and barcode generators, local PDF conversion, SVG and plain-text editors, a Web Audio tone generator, a guarded public-page SEO audit, and a robots.txt or XML sitemap validator.
 
-File and content creation inputs are processed on the visitor's device. The SEO audit sends one public URL to a bounded server fetch and retains neither the submitted URL nor fetched HTML. The site does not require an account or database.
+File and content creation inputs are processed on the visitor's device. Each SEO action sends one explicit public document URL to a bounded server fetch and retains neither submitted values nor fetched content. The robots and sitemap tool never automatically fetches declared sitemaps, child sitemaps or listed pages. The site does not require an account or database.
 
 ## Development
 

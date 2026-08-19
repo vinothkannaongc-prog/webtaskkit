@@ -4,7 +4,7 @@ import { categoryLinks } from "@/lib/tools";
 
 export const metadata: Metadata = {
   title: { absolute: "WebTaskKit — Fast, Private Online Tools" },
-  description: "Free tools for QR codes, barcodes, PDF and image conversion, editing, tones, and guarded SEO audits. No signup and privacy-minded processing.",
+  description: "Free tools for QR codes, barcodes, PDF and image conversion, editing, tones, page audits, robots.txt and XML sitemap checks.",
   alternates: { canonical: "/" },
 };
 
@@ -21,7 +21,7 @@ export default function Home() {
     "@type": "WebSite",
     name: "WebTaskKit",
     url: "https://webtaskkit.com",
-    description: "A focused toolkit for everyday web tasks, with no signup and private browser processing.",
+    description: "A focused toolkit for everyday web tasks, with no signup, local processing where possible and guarded public-document checks.",
     publisher: { "@type": "Organization", name: "WebTaskKit", url: "https://webtaskkit.com" },
   };
 
@@ -34,7 +34,7 @@ export default function Home() {
           <div className="hero-copy">
             <p className="eyebrow"><span className="pulse-dot" /> Local-first browser tools</p>
             <h1>A practical toolkit for<br /><em>everyday web tasks.</em></h1>
-            <p className="hero-lead">Create codes, convert files, edit content, generate tones and inspect public page metadata—fast, free and privacy-minded.</p>
+            <p className="hero-lead">Create codes, convert files, edit content, generate tones, audit public pages and validate crawl documents—fast, free and privacy-minded.</p>
             <div className="hero-actions">
               <a className="button button--primary" href="#tools">Explore the tools <span aria-hidden="true">↓</span></a>
               <a className="button button--ghost" href="/privacy">How privacy works</a>
@@ -52,6 +52,7 @@ export default function Home() {
               <a href="/converters/image-to-pdf" className="workbench-item"><span>IMG</span><b>Combine images into PDF</b><i>→</i></a>
               <a href="/converters/pdf-to-jpg" className="workbench-item"><span>JPG</span><b>Export PDF pages</b><i>→</i></a>
               <a href="/seo-tools/on-page-seo-audit" className="workbench-item"><span>SEO</span><b>Audit a public page</b><i>→</i></a>
+              <a href="/seo-tools/robots-sitemap-validator" className="workbench-item"><span>BOT</span><b>Check robots or sitemap</b><i>→</i></a>
               <a href="/generators/tone" className="workbench-item"><span>Hz</span><b>Play an audio tone</b><i>→</i></a>
               <div className="workbench-status"><span>●</span> Ready. Local when possible; guarded when a server fetch is required.</div>
             </div>
@@ -87,7 +88,7 @@ export default function Home() {
         <div className="section-heading"><p className="eyebrow">The short answer</p><h2>What makes WebTaskKit different?</h2></div>
         <div className="faq-list faq-list--home">
           <details><summary>Are the tools really free?<span>+</span></summary><p>Yes. The launch tools are free to use and do not require an account.</p></details>
-          <details><summary>Do you upload or store my files?<span>+</span></summary><p>File, text, code and audio tools process inputs locally in your browser. The SEO audit sends one public URL to a guarded server fetch, but does not store that URL or the fetched HTML.</p></details>
+          <details><summary>Do you upload or store my files?<span>+</span></summary><p>File, text, code and audio tools process inputs locally in your browser. Each SEO action sends one public document URL to a guarded server fetch, but WebTaskKit does not store the URL or fetched response.</p></details>
           <details><summary>Do the tools work on mobile?<span>+</span></summary><p>Yes. They are designed for current mobile and desktop browsers, although larger editing tasks are more comfortable on a larger screen.</p></details>
           <details><summary>Can I use the outputs commercially?<span>+</span></summary><p>WebTaskKit does not claim ownership of your inputs or outputs. You remain responsible for any underlying content, identifiers or rights involved.</p></details>
         </div>

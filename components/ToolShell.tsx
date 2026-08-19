@@ -35,7 +35,8 @@ const relatedToolSlugs: Record<string, string[]> = {
   svg: ["text", "qr-code", "barcode"],
   text: ["svg", "txt-to-pdf", "qr-code"],
   tone: ["qr-code", "barcode", "text"],
-  "on-page-seo-audit": ["text", "svg", "qr-code"],
+  "on-page-seo-audit": ["robots-sitemap-validator", "text", "qr-code"],
+  "robots-sitemap-validator": ["on-page-seo-audit", "text", "qr-code"],
 };
 
 export function ToolShell({

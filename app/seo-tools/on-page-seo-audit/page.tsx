@@ -55,14 +55,14 @@ export default function OnPageSeoAuditPage() {
         "The audit reads only the first public HTML response after at most three separately validated redirects. It does not execute client JavaScript or wait for hydration.",
         "Only public IP literals and fully qualified public hostnames are accepted. Private, loopback, link-local, reserved, multicast, non-HTTP(S), credential-bearing, fragment-bearing, non-default-port and HTTPS-to-HTTP destinations are rejected.",
         "The fetch uses an absolute 12-second deadline, 16 KiB response-header limit and 512 KiB uncompressed body limit. Compressed responses are rejected rather than decompressed.",
-        "The tool does not crawl links or inspect robots.txt, XML sitemaps, HTTP X-Robots-Tag, Core Web Vitals, mobile rendering, backlinks, duplicate pages or live search-engine indexation.",
+        "This page audit does not crawl links or inspect robots.txt, XML sitemaps, HTTP X-Robots-Tag, Core Web Vitals, mobile rendering, backlinks, duplicate pages or live search-engine indexation.",
         "Title and description counts are editorial prompts, not fixed ranking limits. Search engines may rewrite or truncate display text based on the query and available width.",
         "JSON-LD is checked only for parseable JSON and surfaced types. Use a schema-specific validator for required properties and search-feature eligibility.",
         "The destination server can observe the WebTaskKit fetch like any other HTTP request. Do not audit confidential or tokenized URLs.",
       ]}
       workflowLinks={[
+        { href: "/seo-tools/robots-sitemap-validator", label: "Robots.txt & sitemap validator", text: "Check one discovery document separately after reviewing the page's initial HTML." },
         { href: "/editors/text", label: "Text editor", text: "Draft concise title, description and heading alternatives locally before editing the site." },
-        { href: "/editors/svg", label: "SVG editor", text: "Review a vector logo or icon source separately before using it as a public page asset." },
         { href: "/generators/qr-code", label: "QR code generator", text: "Create and test a QR code for the final public landing-page URL." },
       ]}
       references={[

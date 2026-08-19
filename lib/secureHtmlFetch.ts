@@ -17,6 +17,8 @@ export const SECURE_HTML_FETCH_LIMITS = Object.freeze({
   absoluteTimeoutMilliseconds: 12_000,
 });
 
+const MAXIMUM_SECURE_RESOURCE_BODY_BYTES = 2 * 1_024 * 1_024;
+
 export type SecureHtmlFetchErrorCode =
   | "invalid_url"
   | "blocked_address"
@@ -28,6 +30,7 @@ export type SecureHtmlFetchErrorCode =
   | "remote_status"
   | "unsupported_content"
   | "response_too_large"
+  | "invalid_document"
   | "analysis_too_complex"
   | "network_failed";
 
@@ -41,7 +44,7 @@ export class SecureHtmlFetchError extends Error {
   }
 }
 
-type PinnedResponse = {
+export type PinnedResponse = {
   status: number;
   location: string | null;
   contentType: string | null;
@@ -50,18 +53,39 @@ type PinnedResponse = {
   connectedAddress: string;
 };
 
-type ResolveHost = (hostname: string, signal: AbortSignal) => Promise<string[]>;
-type RequestPinned = (
+export type ResolveHost = (hostname: string, signal: AbortSignal) => Promise<string[]>;
+export type RequestPinned = (
   target: URL,
   pinnedAddress: string,
   signal: AbortSignal,
 ) => Promise<PinnedResponse>;
 
-type SecureFetchDependencies = {
+export type SecureFetchDependencies = {
   resolveHost?: ResolveHost;
   requestPinned?: RequestPinned;
   signal?: AbortSignal;
   absoluteTimeoutMilliseconds?: number;
+};
+
+export type SecurePublicResource = {
+  finalUrl: string;
+  status: number;
+  contentType: string | null;
+  contentEncoding: string | null;
+  body: Uint8Array;
+  redirects: number;
+};
+
+export type SecurePublicResourceContext = {
+  signal: AbortSignal;
+  deadlineMilliseconds: number;
+};
+
+export type SecurePublicResourcePolicy = {
+  accept: string;
+  maximumRawBodyBytes: number;
+  validateUrl?: (value: unknown) => URL;
+  acceptStatus?: (status: number) => boolean;
 };
 
 const IPV4_BLOCKS: ReadonlyArray<readonly [number, number]> = [
@@ -382,10 +406,11 @@ export function singleResponseHeader(
   return values[0];
 }
 
-function requestPublicHtml(
+function requestPublicResource(
   target: URL,
   pinnedAddress: string,
   signal: AbortSignal,
+  policy: Pick<SecurePublicResourcePolicy, "accept" | "maximumRawBodyBytes">,
 ): Promise<PinnedResponse> {
   return new Promise((resolve, reject) => {
     const targetHostname = stripIpv6Brackets(target.hostname).toLowerCase();
@@ -422,7 +447,7 @@ function requestPublicHtml(
       joinDuplicateHeaders: false,
       signal,
       headers: {
-        Accept: "text/html",
+        Accept: policy.accept,
         "Accept-Encoding": "identity",
         Connection: "close",
       },
@@ -484,7 +509,7 @@ function requestPublicHtml(
           finishReject(new SecureHtmlFetchError("network_failed"));
           return;
         }
-        if (Number(contentLength) > SECURE_HTML_FETCH_LIMITS.maximumRawBodyBytes) {
+        if (Number(contentLength) > policy.maximumRawBodyBytes) {
           response.destroy();
           finishReject(new SecureHtmlFetchError("response_too_large"));
           return;
@@ -498,8 +523,7 @@ function requestPublicHtml(
         const buffer = Buffer.from(chunk);
         bytes += buffer.byteLength;
         if (
-          bytes > SECURE_HTML_FETCH_LIMITS.maximumRawBodyBytes
-          || bytes > SECURE_HTML_FETCH_LIMITS.maximumDecompressedBodyBytes
+          bytes > policy.maximumRawBodyBytes
         ) {
           response.destroy();
           finishReject(new SecureHtmlFetchError("response_too_large"));
@@ -549,12 +573,28 @@ function htmlMediaType(contentType: string | null) {
   return { normalizedType, charset };
 }
 
-export async function fetchAndAuditPublicHtml(
+export async function withSecurePublicResource<T>(
   value: unknown,
+  policy: SecurePublicResourcePolicy,
+  consume: (
+    resource: SecurePublicResource,
+    context: SecurePublicResourceContext,
+  ) => Promise<T> | T,
   dependencies: SecureFetchDependencies = {},
-): Promise<SeoAuditResult> {
+): Promise<T> {
+  if (
+    !Number.isSafeInteger(policy.maximumRawBodyBytes)
+    || policy.maximumRawBodyBytes < 1
+    || policy.maximumRawBodyBytes > MAXIMUM_SECURE_RESOURCE_BODY_BYTES
+    || !policy.accept
+    || policy.accept.length > 256
+  ) {
+    throw new SecureHtmlFetchError("network_failed");
+  }
   const resolveHost = dependencies.resolveHost ?? resolvePublicAddresses;
-  const requestPinned = dependencies.requestPinned ?? requestPublicHtml;
+  const requestPinned = dependencies.requestPinned ?? ((target, pinnedAddress, signal) => (
+    requestPublicResource(target, pinnedAddress, signal, policy)
+  ));
   const controller = new AbortController();
   let timedOut = false;
   const timeoutMilliseconds = dependencies.absoluteTimeoutMilliseconds
@@ -576,7 +616,8 @@ export async function fetchAndAuditPublicHtml(
   else dependencies.signal?.addEventListener("abort", abortFromCaller, { once: true });
 
   try {
-    let current = validatePublicAuditUrl(value);
+    const validateUrl = policy.validateUrl ?? validatePublicAuditUrl;
+    let current = validateUrl(value);
     const visited = new Set<string>();
     let redirects = 0;
     while (true) {
@@ -602,7 +643,7 @@ export async function fetchAndAuditPublicHtml(
       ) {
         throw new SecureHtmlFetchError("blocked_address");
       }
-      if (response.body.byteLength > SECURE_HTML_FETCH_LIMITS.maximumRawBodyBytes) {
+      if (response.body.byteLength > policy.maximumRawBodyBytes) {
         throw new SecureHtmlFetchError("response_too_large");
       }
 
@@ -615,7 +656,7 @@ export async function fetchAndAuditPublicHtml(
         }
         let redirected: URL;
         try {
-          redirected = validatePublicAuditUrl(new URL(response.location, current).href);
+          redirected = validateUrl(new URL(response.location, current).href);
         } catch (error) {
           if (error instanceof SecureHtmlFetchError && error.code === "blocked_address") throw error;
           throw new SecureHtmlFetchError("unsafe_redirect");
@@ -627,32 +668,28 @@ export async function fetchAndAuditPublicHtml(
         current = redirected;
         continue;
       }
-      if (response.status < 200 || response.status > 299) {
+      const acceptedStatus = policy.acceptStatus
+        ? policy.acceptStatus(response.status)
+        : response.status >= 200 && response.status <= 299;
+      if (!acceptedStatus) {
         throw new SecureHtmlFetchError("remote_status");
       }
       if (response.contentEncoding && response.contentEncoding.trim().toLowerCase() !== "identity") {
         throw new SecureHtmlFetchError("unsupported_content");
       }
-      const media = htmlMediaType(response.contentType);
-      const decoder = new TextDecoder(media.charset === "latin1" ? "iso-8859-1" : media.charset);
-      const html = decoder.decode(response.body);
-      return await analyzeSeoHtml({
-        html,
+      return await consume({
         finalUrl: current.href,
         status: response.status,
-        contentType: media.normalizedType,
-        responseBytes: response.body.byteLength,
+        contentType: response.contentType,
+        contentEncoding: response.contentEncoding,
+        body: response.body,
         redirects,
+      }, {
         signal: controller.signal,
         deadlineMilliseconds,
       });
     }
   } catch (error) {
-    if (error instanceof SeoAuditLimitError) {
-      if (error.code === "timeout") throw new SecureHtmlFetchError("timeout");
-      if (error.code === "aborted") throw new SecureHtmlFetchError(timedOut ? "timeout" : "aborted");
-      throw new SecureHtmlFetchError("analysis_too_complex");
-    }
     if (error instanceof SecureHtmlFetchError) {
       if (error.code === "aborted") {
         throw new SecureHtmlFetchError(timedOut ? "timeout" : "aborted");
@@ -664,4 +701,37 @@ export async function fetchAndAuditPublicHtml(
     clearTimeout(timeout);
     dependencies.signal?.removeEventListener("abort", abortFromCaller);
   }
+}
+
+export async function fetchAndAuditPublicHtml(
+  value: unknown,
+  dependencies: SecureFetchDependencies = {},
+): Promise<SeoAuditResult> {
+  return withSecurePublicResource(value, {
+    accept: "text/html",
+    maximumRawBodyBytes: SECURE_HTML_FETCH_LIMITS.maximumRawBodyBytes,
+  }, async (response, context) => {
+    try {
+      const media = htmlMediaType(response.contentType);
+      const decoder = new TextDecoder(media.charset === "latin1" ? "iso-8859-1" : media.charset);
+      const html = decoder.decode(response.body);
+      return await analyzeSeoHtml({
+        html,
+        finalUrl: response.finalUrl,
+        status: response.status,
+        contentType: media.normalizedType,
+        responseBytes: response.body.byteLength,
+        redirects: response.redirects,
+        signal: context.signal,
+        deadlineMilliseconds: context.deadlineMilliseconds,
+      });
+    } catch (error) {
+      if (error instanceof SeoAuditLimitError) {
+        if (error.code === "timeout") throw new SecureHtmlFetchError("timeout");
+        if (error.code === "aborted") throw new SecureHtmlFetchError("aborted");
+        throw new SecureHtmlFetchError("analysis_too_complex");
+      }
+      throw error;
+    }
+  }, dependencies);
 }

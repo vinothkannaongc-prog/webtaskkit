@@ -16,7 +16,7 @@ From this repository:
 # Read the production sitemap and preview what would change. No submission.
 node scripts/indexnow.mjs
 
-# Preview one explicitly changed page. Use this when the sitemap has no <lastmod>.
+# Preview one explicitly changed page. Use this for a changed page whose sitemap entry has no <lastmod>.
 node scripts/indexnow.mjs --url https://webtaskkit.com/generators/qr-code
 
 # Submit detected additions, deletions, and changed <lastmod> values.
@@ -25,7 +25,7 @@ node scripts/indexnow.mjs --submit --confirm-host webtaskkit.com
 
 The first successful submission includes all sitemap URLs. Later runs compare the sitemap against `outputs/indexnow-state.json`, which is ignored by Git. Preserve that state on the operator machine. Removed sitemap URLs are submitted once so search engines can recrawl the deletion. A successful HTTP 200 or 202 response updates state; dry runs and failures do not.
 
-WebTaskKit's current sitemap does not provide `<lastmod>`. For an updated existing page, pass one or more explicit `--url` values. New and removed URLs are still detected automatically. `--all` is available for a deliberate full refresh but should not be used routinely.
+WebTaskKit provides `<lastmod>` only for pages that received a substantive, dated update; unchanged entries deliberately retain no timestamp. The helper compares those selective values with its prior state. For an updated existing page without `<lastmod>`, pass one or more explicit `--url` values. New and removed URLs are still detected automatically. `--all` is available for a deliberate full refresh but should not be used routinely.
 
 For offline validation, pass a sitemap file inside the repository or pipe XML over stdin with `--sitemap -`. Actual submission is never enabled implicitly.
 

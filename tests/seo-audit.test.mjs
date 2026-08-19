@@ -528,20 +528,20 @@ test("the minimal Node runtime contains the complete bundled audit dependency cl
   assert.deepEqual(JSON.parse(externalsText), []);
 
   let auditChunk = null;
-  for (const entry of entries.filter((name) => /^route-.*\.js$/.test(name))) {
+  let bundledSources = "";
+  for (const entry of entries.filter((name) => name.endsWith(".js"))) {
     const source = await readFile(new URL(`../dist/server/_next/static/${entry}`, import.meta.url), "utf8");
-    if (source.includes("Pinned lookup hostname mismatch")) {
-      auditChunk = source;
-      break;
-    }
+    bundledSources += source;
+    if (/^route-.*\.js$/.test(entry) && source.includes("invalid_request") && source.includes("Object.keys") && !source.includes("Multiple location hosts")) auditChunk = source;
   }
   assert.ok(auditChunk, "expected the compiled secure audit API route chunk");
-  assert.match(auditChunk, /from["']node:dns\/promises["']/);
-  assert.match(auditChunk, /from["']node:http["']/);
-  assert.match(auditChunk, /from["']node:https["']/);
-  assert.match(auditChunk, /missing-doctype/);
-  assert.match(auditChunk, /maximumRawBodyBytes/);
-  assert.doesNotMatch(auditChunk, /from["'](?:parse5|entities)(?:\/[^"']*)?["']/);
+  assert.match(bundledSources, /Pinned lookup hostname mismatch/);
+  assert.match(bundledSources, /from["']node:dns\/promises["']/);
+  assert.match(bundledSources, /from["']node:http["']/);
+  assert.match(bundledSources, /from["']node:https["']/);
+  assert.match(bundledSources, /missing-doctype/);
+  assert.match(bundledSources, /maximumRawBodyBytes/);
+  assert.doesNotMatch(bundledSources, /from["'](?:parse5|entities)(?:\/[^"']*)?["']/);
 
   assert.match(runtimeImage, /COPY --from=build --chown=node:node \/app\/dist \.\/dist/);
   assert.doesNotMatch(runtimeImage, /node_modules\/(?:parse5|entities)/);

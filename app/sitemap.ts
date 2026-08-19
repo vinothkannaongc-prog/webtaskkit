@@ -3,11 +3,12 @@ import { tools } from "@/lib/tools";
 
 const siteUrl = "https://webtaskkit.com";
 const lastModifiedByPath: Record<string, string> = {
-  "/": "2026-08-18T21:35:16.000Z",
-  "/about": "2026-08-18T21:35:16.000Z",
-  "/privacy": "2026-08-18T21:35:16.000Z",
-  "/seo-tools": "2026-08-18T21:35:16.000Z",
-  "/seo-tools/on-page-seo-audit": "2026-08-18T21:35:16.000Z",
+  "/": "2026-08-19T03:13:47.894Z",
+  "/about": "2026-08-19T03:13:47.894Z",
+  "/privacy": "2026-08-19T03:13:47.894Z",
+  "/seo-tools": "2026-08-19T03:13:47.894Z",
+  "/seo-tools/on-page-seo-audit": "2026-08-19T03:13:47.894Z",
+  "/seo-tools/robots-sitemap-validator": "2026-08-19T03:13:47.894Z",
 };
 
 export default function sitemap(): MetadataRoute.Sitemap {
