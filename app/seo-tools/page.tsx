@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { CategoryPage } from "@/components/CategoryPage";
 
 export const metadata: Metadata = {
-  title: "Free SEO Tools",
+  title: "Free SEO Tools: On-Page Audit and Robots Checker",
   description: "Audit public page metadata and check one robots.txt or XML sitemap document with guarded, explainable SEO tools.",
   alternates: { canonical: "/seo-tools" },
 };
