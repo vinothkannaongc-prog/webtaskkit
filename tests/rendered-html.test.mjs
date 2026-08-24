@@ -66,6 +66,69 @@ test("server-renders category hubs with index and breadcrumb data", async () => 
   assert.match(html, /https:\/\/webtaskkit\.com\/generators\/tone/);
 });
 
+test("SEO content candidate preserves distinct metadata, heading structure, and navigation", async () => {
+  const pages = [
+    ["/about/", "About: Free Browser Tools With No Signup | WebTaskKit"],
+    ["/privacy/", "Privacy Policy: What We Store and What We Don't | WebTaskKit"],
+    ["/seo-tools/", "Free SEO Tools: On-Page Audit and Robots Checker | WebTaskKit"],
+  ];
+  const decodeText = (value) => value
+    .replace(/<[^>]*>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/(?:&#x27;|&#39;|&apos;)/g, "'")
+    .replace(/&quot;/g, '"');
+
+  for (const [path, expectedTitle] of pages) {
+    const response = await render(path);
+    assert.equal(response.status, 200, path);
+    const html = await response.text();
+    const title = decodeText(/<title>([\s\S]*?)<\/title>/i.exec(html)?.[1] ?? "");
+    assert.equal(title, expectedTitle, `${path} should render its final title`);
+    assert.ok(title.length >= 50 && title.length <= 65, `${path} title should remain descriptive without being excessive`);
+
+    const canonicalLinks = [...html.matchAll(/<link\b[^>]*>/gi)]
+      .map((match) => match[0])
+      .filter((tag) => {
+        const rel = /\brel=["']([^"']*)["']/i.exec(tag)?.[1] ?? "";
+        return rel.split(/\s+/).some((value) => value.toLowerCase() === "canonical");
+      });
+    assert.equal(canonicalLinks.length, 1, `${path} should render exactly one canonical link`);
+    const canonicalPath = path === "/" ? "" : path.slice(0, -1);
+    assert.match(canonicalLinks[0], new RegExp(`href=["']https://webtaskkit\\.com${canonicalPath}["']`), `${path} should keep its canonical URL`);
+
+    const headings = [...html.matchAll(/<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/gi)]
+      .map((match) => ({ level: Number(match[1]), text: decodeText(match[2]).trim() }));
+    assert.equal(headings.filter(({ level }) => level === 1).length, 1, `${path} should have one h1`);
+    for (let index = 1; index < headings.length; index += 1) {
+      assert.ok(headings[index].level <= headings[index - 1].level + 1, `${path} should not skip heading levels`);
+    }
+  }
+
+  const aboutHtml = await (await render("/about/")).text();
+  const aboutHeadings = [...aboutHtml.matchAll(/<h([12])\b[^>]*>([\s\S]*?)<\/h\1>/gi)]
+    .map((match) => [Number(match[1]), decodeText(match[2]).trim()]);
+  assert.deepEqual(aboutHeadings, [
+    [1, "Everyday web tasks should be straightforward."],
+    [2, "Our product promise"],
+    [2, "The problem with most free online tools"],
+    [2, "What runs where, exactly"],
+    [2, "Built for useful outcomes"],
+    [2, "No account required"],
+    [2, "What comes next"],
+  ]);
+  assert.match(aboutHtml, /Eight of the ten tools process their working inputs entirely in your browser/);
+  assert.match(aboutHtml, /Some tool code and PDF support assets load on demand/);
+  assert.match(aboutHtml, /browsers restrict those cross-origin reads/);
+  assert.match(aboutHtml, /Tool inputs are not attached to an account/);
+  assert.match(aboutHtml, /<a\b[^>]*href=["']\/privacy["'][^>]*>privacy policy<\/a>/i);
+
+  const seoHubHtml = await (await render("/seo-tools/")).text();
+  assert.match(seoHubHtml, /"@type":"ItemList"/);
+  assert.match(seoHubHtml, /"@type":"BreadcrumbList"/);
+  assert.match(seoHubHtml, /https:\/\/webtaskkit\.com\/seo-tools\/on-page-seo-audit/);
+  assert.match(seoHubHtml, /https:\/\/webtaskkit\.com\/seo-tools\/robots-sitemap-validator/);
+});
+
 test("server-renders the SEO audit with guarded-fetch copy, sources, and route metadata", async () => {
   const response = await render("/seo-tools/on-page-seo-audit/");
   assert.equal(response.status, 200);
