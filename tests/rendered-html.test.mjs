@@ -214,7 +214,8 @@ test("sitemap always uses the production origin", async () => {
   assert.match(xml, /https:\/\/webtaskkit\.com\/converters\/pdf-to-jpg/);
   assert.match(xml, /https:\/\/webtaskkit\.com\/seo-tools\/on-page-seo-audit/);
   assert.match(xml, /https:\/\/webtaskkit\.com\/seo-tools\/robots-sitemap-validator/);
-  assert.equal((xml.match(/<lastmod>2026-08-19T03:13:47\.894Z<\/lastmod>/g) ?? []).length, 6);
+  assert.equal((xml.match(/<lastmod>2026-08-19T03:13:47\.894Z<\/lastmod>/g) ?? []).length, 3);
+  assert.equal((xml.match(/<lastmod>2026-09-01T06:50:35\.918Z<\/lastmod>/g) ?? []).length, 3);
   assert.doesNotMatch(xml, /webtaskkit\.test/);
 });
 

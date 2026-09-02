@@ -4,9 +4,9 @@ import { tools } from "@/lib/tools";
 const siteUrl = "https://webtaskkit.com";
 const lastModifiedByPath: Record<string, string> = {
   "/": "2026-08-19T03:13:47.894Z",
-  "/about": "2026-08-19T03:13:47.894Z",
-  "/privacy": "2026-08-19T03:13:47.894Z",
-  "/seo-tools": "2026-08-19T03:13:47.894Z",
+  "/about": "2026-09-01T06:50:35.918Z",
+  "/privacy": "2026-09-01T06:50:35.918Z",
+  "/seo-tools": "2026-09-01T06:50:35.918Z",
   "/seo-tools/on-page-seo-audit": "2026-08-19T03:13:47.894Z",
   "/seo-tools/robots-sitemap-validator": "2026-08-19T03:13:47.894Z",
 };
